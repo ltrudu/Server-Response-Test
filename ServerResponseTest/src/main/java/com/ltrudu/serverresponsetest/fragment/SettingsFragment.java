@@ -15,6 +15,7 @@ import android.view.ViewGroup;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -67,6 +68,9 @@ public class SettingsFragment extends Fragment {
     private LinearLayout layoutImportData;
     private LinearLayout layoutShareData;
     private LinearLayout layoutResetDatabase;
+    private LinearLayout layoutNotificationStatus;
+    private TextView notificationStatusText;
+    private android.widget.ImageView notificationStatusIcon;
     
     private ActivityResultLauncher<String> importLauncher;
     private ActivityResultLauncher<String> createDocumentLauncher;
@@ -148,6 +152,9 @@ public class SettingsFragment extends Fragment {
         layoutImportData = view.findViewById(R.id.layoutImportData);
         layoutShareData = view.findViewById(R.id.layoutShareData);
         layoutResetDatabase = view.findViewById(R.id.layoutResetDatabase);
+        layoutNotificationStatus = view.findViewById(R.id.layoutNotificationStatus);
+        notificationStatusText = view.findViewById(R.id.notificationStatusText);
+        notificationStatusIcon = view.findViewById(R.id.notificationStatusIcon);
     }
     
     private void setupViewModel() {
@@ -195,8 +202,15 @@ public class SettingsFragment extends Fragment {
         layoutImportData.setOnClickListener(v -> importServers());
         layoutShareData.setOnClickListener(v -> shareServers());
         layoutResetDatabase.setOnClickListener(v -> showResetDatabaseDialog());
+        layoutNotificationStatus.setOnClickListener(v -> handleNotificationStatusClick());
         
         setupAutoSave();
+    }
+    
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateNotificationStatus();
     }
     
     
@@ -588,6 +602,45 @@ public class SettingsFragment extends Fragment {
                     Toast.makeText(getContext(), "Error sharing servers", Toast.LENGTH_SHORT).show());
             }
         });
+    }
+    
+    private void updateNotificationStatus() {
+        if (getActivity() instanceof com.ltrudu.serverresponsetest.MainActivity) {
+            com.ltrudu.serverresponsetest.MainActivity mainActivity = 
+                    (com.ltrudu.serverresponsetest.MainActivity) getActivity();
+            
+            boolean notificationsEnabled = mainActivity.areNotificationsEnabled();
+            
+            if (notificationsEnabled) {
+                notificationStatusText.setText(R.string.notifications_enabled);
+                notificationStatusText.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.holo_green_dark));
+                notificationStatusIcon.setColorFilter(ContextCompat.getColor(requireContext(), android.R.color.holo_green_dark));
+            } else {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                    // Android 13+ with explicit permission
+                    notificationStatusText.setText(R.string.notifications_denied);
+                } else {
+                    // Android 8-12 with settings toggle
+                    notificationStatusText.setText(R.string.notifications_disabled);
+                }
+                notificationStatusText.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.holo_orange_dark));
+                notificationStatusIcon.setColorFilter(ContextCompat.getColor(requireContext(), android.R.color.holo_orange_dark));
+            }
+        }
+    }
+    
+    private void handleNotificationStatusClick() {
+        if (getActivity() instanceof com.ltrudu.serverresponsetest.MainActivity) {
+            com.ltrudu.serverresponsetest.MainActivity mainActivity = 
+                    (com.ltrudu.serverresponsetest.MainActivity) getActivity();
+            
+            if (!mainActivity.areNotificationsEnabled()) {
+                mainActivity.ensureNotificationPermission();
+            } else {
+                // Already enabled, show info
+                Toast.makeText(getContext(), getString(R.string.notifications_already_enabled), Toast.LENGTH_SHORT).show();
+            }
+        }
     }
     
     @Override

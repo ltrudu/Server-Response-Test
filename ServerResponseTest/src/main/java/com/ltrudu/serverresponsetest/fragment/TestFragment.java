@@ -33,6 +33,7 @@ public class TestFragment extends Fragment {
     private TextView serverCountText;
     private TextView statusText;
     private TextView countdownText;
+    private TextView remainingRequestsText;
     private FloatingActionButton playStopButton;
     private RecyclerView serverListRecyclerView;
     private TestServerAdapter testServerAdapter;
@@ -88,6 +89,7 @@ public class TestFragment extends Fragment {
         serverCountText = view.findViewById(R.id.serverCountText);
         statusText = view.findViewById(R.id.statusText);
         countdownText = view.findViewById(R.id.countdownText);
+        remainingRequestsText = view.findViewById(R.id.remainingRequestsText);
         playStopButton = view.findViewById(R.id.playStopButton);
         serverListRecyclerView = view.findViewById(R.id.serverListRecyclerView);
         emptyTestStateLayout = view.findViewById(R.id.emptyTestStateLayout);
@@ -151,11 +153,13 @@ public class TestFragment extends Fragment {
                     areServersProcessing = true;
                     updateUI();
                     updateCountdownText();
+                    updateRemainingRequestsDisplay();
                 } else if (ServerTestService.ACTION_TEST_STOPPED.equals(action)) {
                     isTestRunning = false;
                     areServersProcessing = false;
                     statusText.setText(R.string.test_stopped);
                     stopCountdown();
+                    hideRemainingRequestsDisplay();
                     updateUI();
                 } else if (ServerTestService.ACTION_TEST_RESULT.equals(action)) {
                     // Handle individual server test results
@@ -163,6 +167,9 @@ public class TestFragment extends Fragment {
                 } else if (ServerTestService.ACTION_SERVER_TESTING.equals(action)) {
                     // Handle server testing started
                     handleServerTesting(intent);
+                } else if (ServerTestService.ACTION_REQUEST_PROGRESS.equals(action)) {
+                    // Handle request progress updates
+                    handleRequestProgress(intent);
                 }
             }
         };
@@ -174,6 +181,7 @@ public class TestFragment extends Fragment {
         filter.addAction(ServerTestService.ACTION_TEST_STOPPED);
         filter.addAction(ServerTestService.ACTION_TEST_RESULT);
         filter.addAction(ServerTestService.ACTION_SERVER_TESTING);
+        filter.addAction(ServerTestService.ACTION_REQUEST_PROGRESS);
         localBroadcastManager.registerReceiver(testResultReceiver, filter);
     }
     
@@ -213,6 +221,44 @@ public class TestFragment extends Fragment {
         testServerAdapter.updateServerStatus(serverId, TestServerAdapter.ServerStatus.PROCESSING);
     }
     
+    private void handleRequestProgress(Intent intent) {
+        int currentRequest = intent.getIntExtra(ServerTestService.EXTRA_CURRENT_REQUEST, 0);
+        int totalRequests = intent.getIntExtra(ServerTestService.EXTRA_TOTAL_REQUESTS, 1);
+        boolean infiniteRequests = intent.getBooleanExtra(ServerTestService.EXTRA_INFINITE_REQUESTS, true);
+        
+        if (!infiniteRequests) {
+            // Update the remaining requests display
+            int remaining = totalRequests - currentRequest;
+            String remainingText = getString(R.string.remaining_requests, remaining, totalRequests);
+            remainingRequestsText.setText(remainingText);
+            remainingRequestsText.setVisibility(View.VISIBLE);
+        } else {
+            // Hide or show infinite mode
+            remainingRequestsText.setText(R.string.infinite_mode);
+            remainingRequestsText.setVisibility(View.VISIBLE);
+        }
+    }
+    
+    private void updateRemainingRequestsDisplay() {
+        // Check current settings to determine if we should show the counter
+        if (currentSettings != null) {
+            if (!currentSettings.isInfiniteRequests()) {
+                // Show initial state for finite requests
+                String remainingText = getString(R.string.remaining_requests, currentSettings.getNumberOfRequests(), currentSettings.getNumberOfRequests());
+                remainingRequestsText.setText(remainingText);
+                remainingRequestsText.setVisibility(View.VISIBLE);
+            } else {
+                // Show infinite mode
+                remainingRequestsText.setText(R.string.infinite_mode);
+                remainingRequestsText.setVisibility(View.VISIBLE);
+            }
+        }
+    }
+    
+    private void hideRemainingRequestsDisplay() {
+        remainingRequestsText.setVisibility(View.GONE);
+    }
+    
     private void setAllServersPending() {
         // Use the adapter's method to set all servers to pending status
         testServerAdapter.setAllServersPending();
@@ -244,12 +290,12 @@ public class TestFragment extends Fragment {
         }
         
         // Get current settings from cache
-        int timeBetweenRequests = 5; // Default value
+        int timeBetweenRequests = 5000; // Default value
         if (currentSettings != null) {
             timeBetweenRequests = currentSettings.getTimeBetweenRequests();
         }
         
-        long countdownTime = timeBetweenRequests * 1000L; // Convert to milliseconds
+        long countdownTime = timeBetweenRequests; // Already in milliseconds
         
         countDownTimer = new CountDownTimer(countdownTime, 100L) {
             @Override
@@ -295,8 +341,35 @@ public class TestFragment extends Fragment {
     }
     
     private void startTest() {
+        // Check notification permission before starting the service
+        if (getActivity() instanceof com.ltrudu.serverresponsetest.MainActivity) {
+            com.ltrudu.serverresponsetest.MainActivity mainActivity = 
+                    (com.ltrudu.serverresponsetest.MainActivity) getActivity();
+            
+            if (!mainActivity.areNotificationsEnabled()) {
+                // Show warning and offer to open settings
+                new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                        .setTitle("Enable Notifications")
+                        .setMessage("For the best experience with background testing, please enable notifications. This allows you to monitor and control tests even when the app is not visible.\n\nDo you want to start the test anyway?")
+                        .setIcon(R.drawable.ic_notification_server_test)
+                        .setPositiveButton("Enable Notifications", (dialog, which) -> {
+                            mainActivity.ensureNotificationPermission();
+                        })
+                        .setNeutralButton("Start Without Notifications", (dialog, which) -> {
+                            startTestService();
+                        })
+                        .setNegativeButton("Cancel", null)
+                        .show();
+                return;
+            }
+        }
+        
+        startTestService();
+    }
+    
+    private void startTestService() {
         // Get current settings from cache
-        int timeBetweenRequests = 5; // Default values
+        int timeBetweenRequests = 5000; // Default values
         int requestDelayMs = 100;
         int randomMinDelayMs = 50;
         int randomMaxDelayMs = 100;
@@ -319,6 +392,10 @@ public class TestFragment extends Fragment {
         serviceIntent.putExtra(ServerTestService.EXTRA_RANDOM_MAX_DELAY_MS, randomMaxDelayMs);
         serviceIntent.putExtra(ServerTestService.EXTRA_INFINITE_REQUESTS, infiniteRequests);
         serviceIntent.putExtra(ServerTestService.EXTRA_NUMBER_OF_REQUESTS, numberOfRequests);
+        
+        isTestRunning = true;
+        statusText.setText(R.string.test_running);
+        updateUI();
         
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             requireContext().startForegroundService(serviceIntent);

@@ -25,7 +25,7 @@
     <string name="request_type_ping">Ping</string>
     
     <!-- Settings -->
-    <string name="time_between_sessions">Time between sessions (seconds)</string>
+    <string name="time_between_sessions">Time between sessions (milliseconds)</string>
     <string name="request_delay_ms">Request delay (ms)</string>
     <string name="random_min_delay_ms">Min random delay (ms)</string>
     <string name="random_max_delay_ms">Max random delay (ms)</string>
@@ -46,14 +46,37 @@
     <string name="test_stopped">Test Stopped</string>
     <string name="next_cycle_in">Next cycle in: %s seconds</string>
     <string name="processing_servers">Processing servers</string>
+    <string name="remaining_requests">Remaining requests: %d/%d</string>
+    <string name="infinite_mode">Infinite mode</string>
     
     <!-- Settings Groups -->
     <string name="test_configuration">Test Configuration</string>
+    <string name="app_permissions">App Permissions</string>
     <string name="data_management">Data Management</string>
     <string name="danger_zone">Danger Zone</string>
     <string name="random_delay_group">Random delay (ms)</string>
     <string name="min_delay">Min</string>
     <string name="max_delay">Max</string>
+    
+    <!-- Notification Permission -->
+    <string name="notification_permission">Notification Permission</string>
+    <string name="checking_status">Checking status...</string>
+    <string name="notifications_enabled">Enabled - Background tests will show status</string>
+    <string name="notifications_disabled">Disabled - Enable to see background test status</string>
+    <string name="notifications_denied">Denied - Tap to open app settings</string>
+    <string name="notifications_already_enabled">Notifications are already enabled for background test status</string>
+    
+    <!-- Notification Permission Dialogs -->
+    <string name="enable_notifications_title">Enable Notifications</string>
+    <string name="notification_rationale_message">This app needs notification permission to show the status of server tests running in the background. This allows you to monitor and control tests even when the app is not visible.</string>
+    <string name="notification_disabled_message">Notifications are disabled for this app. To receive updates about server tests running in the background, please enable notifications in the app settings.\n\nWithout notifications, background tests will still run but you won\'t see their status.</string>
+    <string name="allow">Allow</string>
+    <string name="not_now">Not Now</string>
+    <string name="open_settings">Open Settings</string>
+    <string name="skip">Skip</string>
+    <string name="permission_later_toast">You can enable notifications later in Settings</string>
+    <string name="permission_manual_toast">You can enable notifications later in Android Settings > Apps</string>
+    <string name="permission_granted_toast">Notification permission granted</string>
     
     <!-- Danger Zone -->
     <string name="reset_database">Reset Database</string>

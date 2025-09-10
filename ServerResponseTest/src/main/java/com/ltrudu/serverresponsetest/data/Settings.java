@@ -13,7 +13,7 @@ public class Settings {
     private int id = 1; // Single row for settings
     
     @ColumnInfo(name = "time_between_requests")
-    private int timeBetweenRequests = 5;
+    private int timeBetweenRequests = 5000;
     
     @ColumnInfo(name = "request_delay_ms")
     private int requestDelayMs = 100;
@@ -103,6 +103,6 @@ public class Settings {
     
     // Create default settings instance
     public static Settings getDefault() {
-        return new Settings(5, 100, 50, 100, true, 10);
+        return new Settings(5000, 100, 50, 100, true, 10);
     }
 }

@@ -25,7 +25,7 @@
     <string name="request_type_ping">Ping</string>
     
     <!-- Settings -->
-    <string name="time_between_sessions">Temps entre les sessions (secondes)</string>
+    <string name="time_between_sessions">Temps entre les sessions (millisecondes)</string>
     <string name="request_delay_ms">Délai entre requêtes (ms)</string>
     <string name="random_min_delay_ms">Délai aléatoire min (ms)</string>
     <string name="random_max_delay_ms">Délai aléatoire max (ms)</string>
@@ -46,14 +46,37 @@
     <string name="test_stopped">Test Arrêté</string>
     <string name="next_cycle_in">Prochain cycle dans : %s secondes</string>
     <string name="processing_servers">Traitement des serveurs</string>
+    <string name="remaining_requests">Requêtes restantes : %d/%d</string>
+    <string name="infinite_mode">Mode infini</string>
     
     <!-- Settings Groups -->
     <string name="test_configuration">Configuration de Test</string>
+    <string name="app_permissions">Autorisations de l\'Application</string>
     <string name="data_management">Gestion des Données</string>
     <string name="danger_zone">Zone de Danger</string>
     <string name="random_delay_group">Délai aléatoire (ms)</string>
     <string name="min_delay">Min</string>
     <string name="max_delay">Max</string>
+    
+    <!-- Notification Permission -->
+    <string name="notification_permission">Autorisation de Notification</string>
+    <string name="checking_status">Vérification du statut...</string>
+    <string name="notifications_enabled">Activé - Les tests en arrière-plan afficheront le statut</string>
+    <string name="notifications_disabled">Désactivé - Activez pour voir le statut des tests en arrière-plan</string>
+    <string name="notifications_denied">Refusé - Appuyez pour ouvrir les paramètres de l\'application</string>
+    <string name="notifications_already_enabled">Les notifications sont déjà activées pour le statut des tests en arrière-plan</string>
+    
+    <!-- Notification Permission Dialogs -->
+    <string name="enable_notifications_title">Activer les Notifications</string>
+    <string name="notification_rationale_message">Cette application a besoin de l\'autorisation de notification pour afficher le statut des tests de serveur en arrière-plan. Cela vous permet de surveiller et contrôler les tests même lorsque l\'application n\'est pas visible.</string>
+    <string name="notification_disabled_message">Les notifications sont désactivées pour cette application. Pour recevoir des mises à jour sur les tests de serveur en arrière-plan, veuillez activer les notifications dans les paramètres de l\'application.\n\nSans notifications, les tests en arrière-plan fonctionneront toujours mais vous ne verrez pas leur statut.</string>
+    <string name="allow">Autoriser</string>
+    <string name="not_now">Pas maintenant</string>
+    <string name="open_settings">Ouvrir les Paramètres</string>
+    <string name="skip">Ignorer</string>
+    <string name="permission_later_toast">Vous pouvez activer les notifications plus tard dans les Paramètres</string>
+    <string name="permission_manual_toast">Vous pouvez activer les notifications plus tard dans Paramètres Android > Applications</string>
+    <string name="permission_granted_toast">Autorisation de notification accordée</string>
     
     <!-- Danger Zone -->
     <string name="reset_database">Réinitialiser la Base</string>
