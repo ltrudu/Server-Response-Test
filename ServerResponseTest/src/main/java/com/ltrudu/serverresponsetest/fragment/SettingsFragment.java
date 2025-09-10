@@ -399,6 +399,8 @@ public class SettingsFragment extends Fragment {
             try (BufferedReader reader = new BufferedReader(
                     new InputStreamReader(requireContext().getContentResolver().openInputStream(uri)))) {
                 
+                android.util.Log.d("SettingsFragment", "Starting import process");
+                
                 StringBuilder jsonBuilder = new StringBuilder();
                 String line;
                 while ((line = reader.readLine()) != null) {
@@ -406,6 +408,8 @@ public class SettingsFragment extends Fragment {
                 }
                 
                 String jsonString = jsonBuilder.toString();
+                android.util.Log.d("SettingsFragment", "JSON read successfully, length: " + jsonString.length());
+                
                 Gson gson = new Gson();
                 
                 try {
@@ -413,13 +417,47 @@ public class SettingsFragment extends Fragment {
                     ExportData exportData = gson.fromJson(jsonString, ExportData.class);
                     
                     if (exportData != null && exportData.getServers() != null) {
-                        // Clear existing data
+                        android.util.Log.d("SettingsFragment", "Parsed as ExportData format with " + exportData.getServers().size() + " servers");
+                        
+                        // Clear existing data and wait for completion
+                        android.util.Log.d("SettingsFragment", "Deleting all existing servers");
                         serverViewModel.deleteAllServers();
                         
-                        // Import servers
-                        for (Server server : exportData.getServers()) {
-                            serverViewModel.insertServer(server, null);
+                        // Add a small delay to ensure deletion completes
+                        try {
+                            Thread.sleep(100);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
                         }
+                        
+                        // Import servers synchronously to ensure proper order
+                        android.util.Log.d("SettingsFragment", "Starting server imports");
+                        final int[] insertedCount = {0};
+                        final Object insertLock = new Object();
+                        
+                        for (Server server : exportData.getServers()) {
+                            serverViewModel.insertServer(server, (id) -> {
+                                synchronized (insertLock) {
+                                    insertedCount[0]++;
+                                    android.util.Log.d("SettingsFragment", "Server inserted with ID: " + id + " (" + insertedCount[0] + "/" + exportData.getServers().size() + ")");
+                                    insertLock.notify();
+                                }
+                            });
+                        }
+                        
+                        // Wait for all servers to be inserted
+                        synchronized (insertLock) {
+                            while (insertedCount[0] < exportData.getServers().size()) {
+                                try {
+                                    insertLock.wait(5000); // 5 second timeout
+                                } catch (InterruptedException e) {
+                                    Thread.currentThread().interrupt();
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        android.util.Log.d("SettingsFragment", "All servers inserted, updating settings");
                         
                         // Replace settings (this will automatically trigger UI update)
                         Settings settingsToImport;
@@ -431,6 +469,15 @@ public class SettingsFragment extends Fragment {
                         settingsToImport.setId(1); // Ensure it replaces the existing row
                         settingsRepository.insertSettings(settingsToImport);
                         
+                        // Add delay to ensure settings are persisted before showing success
+                        try {
+                            Thread.sleep(200);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
+                        
+                        android.util.Log.d("SettingsFragment", "Import completed successfully");
+                        
                         requireActivity().runOnUiThread(() -> 
                             Toast.makeText(getContext(), getString(R.string.import_success), Toast.LENGTH_SHORT).show());
                     } else {
@@ -438,16 +485,49 @@ public class SettingsFragment extends Fragment {
                     }
                 } catch (JsonSyntaxException e) {
                     try {
+                        android.util.Log.d("SettingsFragment", "Trying fallback to old format");
                         // Fallback: try to parse as old format (List<Server>)
                         Type listType = new TypeToken<List<Server>>(){}.getType();
                         List<Server> servers = gson.fromJson(jsonString, listType);
                         
                         if (servers != null) {
+                            android.util.Log.d("SettingsFragment", "Parsed as old format with " + servers.size() + " servers");
+                            
                             serverViewModel.deleteAllServers();
                             
-                            for (Server server : servers) {
-                                serverViewModel.insertServer(server, null);
+                            // Add delay to ensure deletion completes
+                            try {
+                                Thread.sleep(100);
+                            } catch (InterruptedException ie) {
+                                Thread.currentThread().interrupt();
                             }
+                            
+                            final int[] insertedCount = {0};
+                            final Object insertLock = new Object();
+                            
+                            for (Server server : servers) {
+                                serverViewModel.insertServer(server, (id) -> {
+                                    synchronized (insertLock) {
+                                        insertedCount[0]++;
+                                        android.util.Log.d("SettingsFragment", "Server inserted with ID: " + id + " (" + insertedCount[0] + "/" + servers.size() + ")");
+                                        insertLock.notify();
+                                    }
+                                });
+                            }
+                            
+                            // Wait for all servers to be inserted
+                            synchronized (insertLock) {
+                                while (insertedCount[0] < servers.size()) {
+                                    try {
+                                        insertLock.wait(5000); // 5 second timeout
+                                    } catch (InterruptedException ie) {
+                                        Thread.currentThread().interrupt();
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            android.util.Log.d("SettingsFragment", "Old format import completed successfully");
                             
                             // Keep existing settings when importing old format
                             requireActivity().runOnUiThread(() -> 
@@ -456,12 +536,14 @@ public class SettingsFragment extends Fragment {
                             throw new JsonSyntaxException("Invalid server list format");
                         }
                     } catch (JsonSyntaxException e2) {
+                        android.util.Log.e("SettingsFragment", "Import failed: Invalid JSON format", e2);
                         requireActivity().runOnUiThread(() -> 
                             Toast.makeText(getContext(), getString(R.string.import_error), Toast.LENGTH_SHORT).show());
                     }
                 }
                 
             } catch (IOException e) {
+                android.util.Log.e("SettingsFragment", "Import failed: IO error", e);
                 requireActivity().runOnUiThread(() -> 
                     Toast.makeText(getContext(), getString(R.string.import_error), Toast.LENGTH_SHORT).show());
             }
