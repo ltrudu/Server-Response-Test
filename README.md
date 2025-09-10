@@ -36,12 +36,12 @@ Server Response Test is a comprehensive Android application designed for network
 ## ✨ Key Features
 
 ### 🎯 **Multi-Protocol Testing**
-- **HTTPS Testing**: Full HTTP/HTTPS request monitoring with detailed response analysis
+- **HTTPS Testing**: Full HTTPS request monitoring with detailed response analysis
 - **Ping Testing**: ICMP ping tests for basic connectivity verification
 - **Flexible Configuration**: Switch between protocols per server with ease
 
 ### ⚡ **Advanced Test Configuration**
-- **🕐 Customizable Intervals**: Set time between test sessions (1-999+ seconds)
+- **🕐 Customizable Intervals**: Set time between test sessions (1-999+ milliseconds)
 - **⏱️ Request Delays**: Fine-tune request timing (1-9999+ milliseconds)
 - **🎲 Random Delays**: Add randomization with min/max delay ranges
 - **🔄 Session Control**: Choose between infinite testing or fixed request counts
