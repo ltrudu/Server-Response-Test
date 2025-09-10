@@ -8,7 +8,7 @@
     
     <!-- Server List -->
     <string name="server_name">Server Name</string>
-    <string name="server_address">Address (HTTP or IP)</string>
+    <string name="server_address">Address (HTTPS or IP)</string>
     <string name="server_port">Port (Optional)</string>
     <string name="request_type">Request Type</string>
     <string name="add_server">Add Server</string>
@@ -21,16 +21,22 @@
     <string name="ok">OK</string>
     
     <!-- Request Types -->
-    <string name="request_type_http">HTTP</string>
+    <string name="request_type_http">HTTPS</string>
     <string name="request_type_ping">Ping</string>
     
     <!-- Settings -->
     <string name="time_between_requests">Time between requests (seconds)</string>
+    <string name="request_delay_ms">Request delay (ms)</string>
+    <string name="random_min_delay_ms">Min random delay (ms)</string>
+    <string name="random_max_delay_ms">Max random delay (ms)</string>
     <string name="infinite_requests">Infinite requests</string>
     <string name="number_of_requests">Number of requests</string>
-    <string name="export_servers">Export Servers</string>
-    <string name="import_servers">Import Servers</string>
-    <string name="share_servers">Share Servers</string>
+    <string name="export_servers">Export servers</string>
+    <string name="import_servers">Import servers</string>
+    <string name="share_servers">Share servers</string>
+    <string name="export_servers_description">Save server configurations and settings</string>
+    <string name="import_servers_description">Restore from a backup</string>
+    <string name="share_servers_description">Share configurations via other applications</string>
     
     <!-- Test -->
     <string name="number_of_servers">Number of servers: %d</string>
@@ -38,6 +44,14 @@
     <string name="stop_test">Stop Test</string>
     <string name="test_running">Test Running</string>
     <string name="test_stopped">Test Stopped</string>
+    <string name="next_cycle_in">Next cycle in: %s seconds</string>
+    
+    <!-- Settings Groups -->
+    <string name="test_configuration">Test Configuration</string>
+    <string name="data_management">Data Management</string>
+    <string name="random_delay_group">Random delay (ms)</string>
+    <string name="min_delay">Min</string>
+    <string name="max_delay">Max</string>
     
     <!-- Status -->
     <string name="status_idle">Idle</string>
@@ -55,4 +69,10 @@
     <string name="import_success">Servers imported successfully</string>
     <string name="export_error">Error exporting servers</string>
     <string name="import_error">Error importing servers</string>
+    
+    <!-- Empty State -->
+    <string name="empty_server_list">No servers yet</string>
+    <string name="empty_server_list_hint">Get started by adding your first server using the + button below</string>
+    <string name="empty_test_list">Nothing to test</string>
+    <string name="empty_test_list_hint">Add some servers first, then come back here to start testing them</string>
 </resources>

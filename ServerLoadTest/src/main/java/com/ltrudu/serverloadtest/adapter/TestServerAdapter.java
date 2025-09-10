@@ -19,15 +19,42 @@ public class TestServerAdapter extends ListAdapter<Server, TestServerAdapter.Tes
     
     private Map<Long, ServerTestResult> testResults = new HashMap<>();
     
+    public enum ServerStatus {
+        IDLE,
+        PENDING,
+        PROCESSING,
+        SUCCESS,
+        ERROR
+    }
+    
     public static class ServerTestResult {
+        public ServerStatus status;
         public boolean success;
         public long responseTime;
         public String errorMessage;
         
-        public ServerTestResult(boolean success, long responseTime, String errorMessage) {
+        public ServerTestResult(ServerStatus status, boolean success, long responseTime, String errorMessage) {
+            this.status = status;
             this.success = success;
             this.responseTime = responseTime;
             this.errorMessage = errorMessage;
+        }
+        
+        // Convenience constructors
+        public static ServerTestResult pending() {
+            return new ServerTestResult(ServerStatus.PENDING, false, 0, null);
+        }
+        
+        public static ServerTestResult processing() {
+            return new ServerTestResult(ServerStatus.PROCESSING, false, 0, null);
+        }
+        
+        public static ServerTestResult success(long responseTime) {
+            return new ServerTestResult(ServerStatus.SUCCESS, true, responseTime, null);
+        }
+        
+        public static ServerTestResult error(long responseTime, String errorMessage) {
+            return new ServerTestResult(ServerStatus.ERROR, false, responseTime, errorMessage);
         }
     }
     
@@ -43,9 +70,8 @@ public class TestServerAdapter extends ListAdapter<Server, TestServerAdapter.Tes
         
         @Override
         public boolean areContentsTheSame(@NonNull Server oldItem, @NonNull Server newItem) {
-            return oldItem.getName().equals(newItem.getName()) &&
-                   oldItem.getAddress().equals(newItem.getAddress()) &&
-                   oldItem.getRequestType() == newItem.getRequestType();
+            // Always return false to force refresh when server list updates
+            return false;
         }
     };
     
@@ -65,7 +91,25 @@ public class TestServerAdapter extends ListAdapter<Server, TestServerAdapter.Tes
     }
     
     public void updateServerResult(long serverId, boolean success, long responseTime, String errorMessage) {
-        testResults.put(serverId, new ServerTestResult(success, responseTime, errorMessage));
+        ServerStatus status = success ? ServerStatus.SUCCESS : ServerStatus.ERROR;
+        testResults.put(serverId, new ServerTestResult(status, success, responseTime, errorMessage));
+        notifyDataSetChanged();
+    }
+    
+    public void updateServerStatus(long serverId, ServerStatus status) {
+        ServerTestResult existingResult = testResults.get(serverId);
+        if (existingResult != null) {
+            testResults.put(serverId, new ServerTestResult(status, existingResult.success, existingResult.responseTime, existingResult.errorMessage));
+        } else {
+            testResults.put(serverId, new ServerTestResult(status, false, 0, null));
+        }
+        notifyDataSetChanged();
+    }
+    
+    public void setAllServersPending() {
+        for (Map.Entry<Long, ServerTestResult> entry : testResults.entrySet()) {
+            entry.setValue(ServerTestResult.pending());
+        }
         notifyDataSetChanged();
     }
     
@@ -104,12 +148,28 @@ public class TestServerAdapter extends ListAdapter<Server, TestServerAdapter.Tes
             requestType.setText(server.getRequestType().name());
             
             if (result != null) {
-                if (result.success) {
-                    statusIcon.setImageResource(android.R.drawable.checkbox_on_background);
-                    statusIcon.setContentDescription(itemView.getContext().getString(R.string.status_success));
-                } else {
-                    statusIcon.setImageResource(android.R.drawable.ic_dialog_alert);
-                    statusIcon.setContentDescription(itemView.getContext().getString(R.string.status_error));
+                switch (result.status) {
+                    case PENDING:
+                        statusIcon.setImageResource(android.R.drawable.ic_menu_recent_history);
+                        statusIcon.setContentDescription("Pending");
+                        break;
+                    case PROCESSING:
+                        statusIcon.setImageResource(android.R.drawable.ic_popup_sync);
+                        statusIcon.setContentDescription("Processing");
+                        break;
+                    case SUCCESS:
+                        statusIcon.setImageResource(android.R.drawable.checkbox_on_background);
+                        statusIcon.setContentDescription(itemView.getContext().getString(R.string.status_success));
+                        break;
+                    case ERROR:
+                        statusIcon.setImageResource(android.R.drawable.ic_delete);
+                        statusIcon.setContentDescription(itemView.getContext().getString(R.string.status_error));
+                        break;
+                    case IDLE:
+                    default:
+                        statusIcon.setImageResource(android.R.drawable.ic_dialog_info);
+                        statusIcon.setContentDescription(itemView.getContext().getString(R.string.status_idle));
+                        break;
                 }
             } else {
                 statusIcon.setImageResource(android.R.drawable.ic_dialog_info);

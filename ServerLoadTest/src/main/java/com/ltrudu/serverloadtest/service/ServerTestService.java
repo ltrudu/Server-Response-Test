@@ -20,6 +20,7 @@ import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.URL;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -34,6 +35,7 @@ public class ServerTestService extends Service {
     public static final String ACTION_TEST_RESULT = "com.ltrudu.serverloadtest.TEST_RESULT";
     public static final String ACTION_TEST_STARTED = "com.ltrudu.serverloadtest.TEST_STARTED";
     public static final String ACTION_TEST_STOPPED = "com.ltrudu.serverloadtest.TEST_STOPPED";
+    public static final String ACTION_SERVER_TESTING = "com.ltrudu.serverloadtest.SERVER_TESTING";
     
     public static final String EXTRA_SERVER_ID = "server_id";
     public static final String EXTRA_SERVER_NAME = "server_name";
@@ -42,6 +44,9 @@ public class ServerTestService extends Service {
     public static final String EXTRA_RESPONSE_TIME = "response_time";
     
     public static final String EXTRA_TIME_BETWEEN_REQUESTS = "time_between_requests";
+    public static final String EXTRA_REQUEST_DELAY_MS = "request_delay_ms";
+    public static final String EXTRA_RANDOM_MIN_DELAY_MS = "random_min_delay_ms";
+    public static final String EXTRA_RANDOM_MAX_DELAY_MS = "random_max_delay_ms";
     public static final String EXTRA_INFINITE_REQUESTS = "infinite_requests";
     public static final String EXTRA_NUMBER_OF_REQUESTS = "number_of_requests";
     
@@ -50,8 +55,12 @@ public class ServerTestService extends Service {
     private Future<?> testTask;
     private ServerRepository serverRepository;
     private LocalBroadcastManager localBroadcastManager;
+    private Random random = new Random();
     
     private int timeBetweenRequests = 5;
+    private int requestDelayMs = 100;
+    private int randomMinDelayMs = 50;
+    private int randomMaxDelayMs = 100;
     private boolean infiniteRequests = true;
     private int numberOfRequests = 10;
     
@@ -68,6 +77,9 @@ public class ServerTestService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null) {
             timeBetweenRequests = intent.getIntExtra(EXTRA_TIME_BETWEEN_REQUESTS, 5);
+            requestDelayMs = intent.getIntExtra(EXTRA_REQUEST_DELAY_MS, 100);
+            randomMinDelayMs = intent.getIntExtra(EXTRA_RANDOM_MIN_DELAY_MS, 50);
+            randomMaxDelayMs = intent.getIntExtra(EXTRA_RANDOM_MAX_DELAY_MS, 100);
             infiniteRequests = intent.getBooleanExtra(EXTRA_INFINITE_REQUESTS, true);
             numberOfRequests = intent.getIntExtra(EXTRA_NUMBER_OF_REQUESTS, 10);
             
@@ -124,12 +136,34 @@ public class ServerTestService extends Service {
                 int requestCount = 0;
                 
                 while (isRunning.get() && (infiniteRequests || requestCount < numberOfRequests)) {
-                    for (Server server : servers) {
+                    for (int i = 0; i < servers.size(); i++) {
                         if (!isRunning.get()) {
                             break;
                         }
                         
+                        Server server = servers.get(i);
                         testServer(server);
+                        
+                        // Add delay between individual server requests (only if there are multiple servers)
+                        if (servers.size() > 1 && i < servers.size() - 1 && isRunning.get()) {
+                            try {
+                                // Calculate total delay: base delay + random delay
+                                int totalDelay = requestDelayMs;
+                                if (randomMaxDelayMs > randomMinDelayMs) {
+                                    int randomDelay = randomMinDelayMs + random.nextInt(randomMaxDelayMs - randomMinDelayMs + 1);
+                                    totalDelay += randomDelay;
+                                } else if (randomMinDelayMs > 0) {
+                                    totalDelay += randomMinDelayMs;
+                                }
+                                
+                                if (totalDelay > 0) {
+                                    Thread.sleep(totalDelay);
+                                }
+                            } catch (InterruptedException e) {
+                                Thread.currentThread().interrupt();
+                                break;
+                            }
+                        }
                     }
                     
                     if (!infiniteRequests) {
@@ -152,12 +186,18 @@ public class ServerTestService extends Service {
     }
     
     private void testServer(Server server) {
+        // Broadcast that we're starting to test this server
+        Intent testingIntent = new Intent(ACTION_SERVER_TESTING);
+        testingIntent.putExtra(EXTRA_SERVER_ID, server.getId());
+        testingIntent.putExtra(EXTRA_SERVER_NAME, server.getName());
+        localBroadcastManager.sendBroadcast(testingIntent);
+        
         long startTime = System.currentTimeMillis();
         boolean success = false;
         String errorMessage = null;
         
         try {
-            if (server.getRequestType() == Server.RequestType.HTTP) {
+            if (server.getRequestType() == Server.RequestType.HTTPS) {
                 success = testHttpServer(server);
             } else if (server.getRequestType() == Server.RequestType.PING) {
                 success = testPingServer(server);

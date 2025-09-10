@@ -14,7 +14,7 @@ public class Server {
     private RequestType requestType;
     
     public enum RequestType {
-        HTTP, PING
+        HTTPS, PING
     }
     
     public Server() {}

@@ -36,9 +36,8 @@ public class ServerAdapter extends ListAdapter<Server, ServerAdapter.ServerViewH
         
         @Override
         public boolean areContentsTheSame(@NonNull Server oldItem, @NonNull Server newItem) {
-            return oldItem.getName().equals(newItem.getName()) &&
-                   oldItem.getAddress().equals(newItem.getAddress()) &&
-                   oldItem.getRequestType() == newItem.getRequestType();
+            // Always return false to force refresh when server list updates
+            return false;
         }
     };
     

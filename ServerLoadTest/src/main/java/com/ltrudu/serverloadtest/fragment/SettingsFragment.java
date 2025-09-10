@@ -9,7 +9,10 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -43,6 +46,9 @@ public class SettingsFragment extends Fragment {
     
     private static final String PREFS_NAME = "ServerLoadTestPrefs";
     private static final String PREF_TIME_BETWEEN_REQUESTS = "time_between_requests";
+    private static final String PREF_REQUEST_DELAY_MS = "request_delay_ms";
+    private static final String PREF_RANDOM_MIN_DELAY_MS = "random_min_delay_ms";
+    private static final String PREF_RANDOM_MAX_DELAY_MS = "random_max_delay_ms";
     private static final String PREF_INFINITE_REQUESTS = "infinite_requests";
     private static final String PREF_NUMBER_OF_REQUESTS = "number_of_requests";
     
@@ -51,13 +57,15 @@ public class SettingsFragment extends Fragment {
     private ExecutorService executorService;
     
     private TextInputEditText timeBetweenRequestsEditText;
+    private TextInputEditText requestDelayEditText;
+    private TextInputEditText randomMinDelayEditText;
+    private TextInputEditText randomMaxDelayEditText;
     private MaterialCheckBox infiniteRequestsCheckBox;
     private TextInputLayout numberOfRequestsInputLayout;
     private TextInputEditText numberOfRequestsEditText;
-    private Button exportButton;
-    private Button importButton;
-    private Button shareButton;
-    private Button saveButton;
+    private LinearLayout layoutExportData;
+    private LinearLayout layoutImportData;
+    private LinearLayout layoutShareData;
     
     private ActivityResultLauncher<String> importLauncher;
     
@@ -90,13 +98,15 @@ public class SettingsFragment extends Fragment {
     
     private void initializeViews(View view) {
         timeBetweenRequestsEditText = view.findViewById(R.id.timeBetweenRequestsEditText);
+        requestDelayEditText = view.findViewById(R.id.requestDelayEditText);
+        randomMinDelayEditText = view.findViewById(R.id.randomMinDelayEditText);
+        randomMaxDelayEditText = view.findViewById(R.id.randomMaxDelayEditText);
         infiniteRequestsCheckBox = view.findViewById(R.id.infiniteRequestsCheckBox);
         numberOfRequestsInputLayout = view.findViewById(R.id.numberOfRequestsInputLayout);
         numberOfRequestsEditText = view.findViewById(R.id.numberOfRequestsEditText);
-        exportButton = view.findViewById(R.id.exportButton);
-        importButton = view.findViewById(R.id.importButton);
-        shareButton = view.findViewById(R.id.shareButton);
-        saveButton = view.findViewById(R.id.saveButton);
+        layoutExportData = view.findViewById(R.id.layoutExportData);
+        layoutImportData = view.findViewById(R.id.layoutImportData);
+        layoutShareData = view.findViewById(R.id.layoutShareData);
     }
     
     private void setupViewModel() {
@@ -111,66 +121,104 @@ public class SettingsFragment extends Fragment {
     private void setupClickListeners() {
         infiniteRequestsCheckBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
             numberOfRequestsInputLayout.setEnabled(!isChecked);
+            saveSettingToPrefs(PREF_INFINITE_REQUESTS, isChecked);
         });
         
-        saveButton.setOnClickListener(v -> saveSettings());
-        exportButton.setOnClickListener(v -> exportServers());
-        importButton.setOnClickListener(v -> importServers());
-        shareButton.setOnClickListener(v -> shareServers());
+        layoutExportData.setOnClickListener(v -> exportServers());
+        layoutImportData.setOnClickListener(v -> importServers());
+        layoutShareData.setOnClickListener(v -> shareServers());
+        
+        setupAutoSave();
     }
     
     private void loadSettings() {
         int timeBetweenRequests = sharedPreferences.getInt(PREF_TIME_BETWEEN_REQUESTS, 5);
+        int requestDelayMs = sharedPreferences.getInt(PREF_REQUEST_DELAY_MS, 100);
+        int randomMinDelayMs = sharedPreferences.getInt(PREF_RANDOM_MIN_DELAY_MS, 50);
+        int randomMaxDelayMs = sharedPreferences.getInt(PREF_RANDOM_MAX_DELAY_MS, 100);
         boolean infiniteRequests = sharedPreferences.getBoolean(PREF_INFINITE_REQUESTS, true);
         int numberOfRequests = sharedPreferences.getInt(PREF_NUMBER_OF_REQUESTS, 10);
         
         timeBetweenRequestsEditText.setText(String.valueOf(timeBetweenRequests));
+        requestDelayEditText.setText(String.valueOf(requestDelayMs));
+        randomMinDelayEditText.setText(String.valueOf(randomMinDelayMs));
+        randomMaxDelayEditText.setText(String.valueOf(randomMaxDelayMs));
         infiniteRequestsCheckBox.setChecked(infiniteRequests);
         numberOfRequestsEditText.setText(String.valueOf(numberOfRequests));
         numberOfRequestsInputLayout.setEnabled(!infiniteRequests);
     }
     
-    private void saveSettings() {
-        String timeText = timeBetweenRequestsEditText.getText().toString().trim();
-        String numberOfRequestsText = numberOfRequestsEditText.getText().toString().trim();
-        
-        if (TextUtils.isEmpty(timeText)) {
-            Toast.makeText(getContext(), "Please enter time between requests", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        
-        if (!infiniteRequestsCheckBox.isChecked() && TextUtils.isEmpty(numberOfRequestsText)) {
-            Toast.makeText(getContext(), "Please enter number of requests", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        
-        try {
-            int timeBetweenRequests = Integer.parseInt(timeText);
-            boolean infiniteRequests = infiniteRequestsCheckBox.isChecked();
-            int numberOfRequests = infiniteRequests ? 0 : Integer.parseInt(numberOfRequestsText);
-            
-            if (timeBetweenRequests <= 0) {
-                Toast.makeText(getContext(), "Time between requests must be positive", Toast.LENGTH_SHORT).show();
-                return;
+    private void setupAutoSave() {
+        timeBetweenRequestsEditText.addTextChangedListener(new SimpleTextWatcher() {
+            @Override
+            public void afterTextChanged(Editable s) {
+                saveIntSetting(s.toString().trim(), PREF_TIME_BETWEEN_REQUESTS, 5);
             }
-            
-            if (!infiniteRequests && numberOfRequests <= 0) {
-                Toast.makeText(getContext(), "Number of requests must be positive", Toast.LENGTH_SHORT).show();
-                return;
+        });
+        
+        requestDelayEditText.addTextChangedListener(new SimpleTextWatcher() {
+            @Override
+            public void afterTextChanged(Editable s) {
+                saveIntSetting(s.toString().trim(), PREF_REQUEST_DELAY_MS, 100);
             }
-            
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putInt(PREF_TIME_BETWEEN_REQUESTS, timeBetweenRequests);
-            editor.putBoolean(PREF_INFINITE_REQUESTS, infiniteRequests);
-            editor.putInt(PREF_NUMBER_OF_REQUESTS, numberOfRequests);
-            editor.apply();
-            
-            Toast.makeText(getContext(), "Settings saved", Toast.LENGTH_SHORT).show();
-            
-        } catch (NumberFormatException e) {
-            Toast.makeText(getContext(), "Please enter valid numbers", Toast.LENGTH_SHORT).show();
+        });
+        
+        randomMinDelayEditText.addTextChangedListener(new SimpleTextWatcher() {
+            @Override
+            public void afterTextChanged(Editable s) {
+                saveIntSetting(s.toString().trim(), PREF_RANDOM_MIN_DELAY_MS, 50);
+            }
+        });
+        
+        randomMaxDelayEditText.addTextChangedListener(new SimpleTextWatcher() {
+            @Override
+            public void afterTextChanged(Editable s) {
+                saveIntSetting(s.toString().trim(), PREF_RANDOM_MAX_DELAY_MS, 100);
+            }
+        });
+        
+        numberOfRequestsEditText.addTextChangedListener(new SimpleTextWatcher() {
+            @Override
+            public void afterTextChanged(Editable s) {
+                saveIntSetting(s.toString().trim(), PREF_NUMBER_OF_REQUESTS, 10);
+            }
+        });
+    }
+    
+    private void saveIntSetting(String value, String key, int defaultValue) {
+        if (!value.isEmpty()) {
+            try {
+                int intValue = Integer.parseInt(value);
+                if (intValue >= 0) {
+                    saveSettingToPrefs(key, intValue);
+                }
+            } catch (NumberFormatException e) {
+                // Ignore invalid numbers
+            }
         }
     }
+    
+    private void saveSettingToPrefs(String key, Object value) {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        if (value instanceof Integer) {
+            editor.putInt(key, (Integer) value);
+        } else if (value instanceof Boolean) {
+            editor.putBoolean(key, (Boolean) value);
+        }
+        editor.apply();
+    }
+    
+    private static class SimpleTextWatcher implements TextWatcher {
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+        
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {}
+        
+        @Override
+        public void afterTextChanged(Editable s) {}
+    }
+    
     
     private void exportServers() {
         executorService.execute(() -> {
@@ -282,6 +330,18 @@ public class SettingsFragment extends Fragment {
     
     public int getTimeBetweenRequests() {
         return sharedPreferences.getInt(PREF_TIME_BETWEEN_REQUESTS, 5);
+    }
+    
+    public int getRequestDelayMs() {
+        return sharedPreferences.getInt(PREF_REQUEST_DELAY_MS, 100);
+    }
+    
+    public int getRandomMinDelayMs() {
+        return sharedPreferences.getInt(PREF_RANDOM_MIN_DELAY_MS, 50);
+    }
+    
+    public int getRandomMaxDelayMs() {
+        return sharedPreferences.getInt(PREF_RANDOM_MAX_DELAY_MS, 100);
     }
     
     public boolean isInfiniteRequests() {

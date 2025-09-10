@@ -8,7 +8,7 @@
     
     <!-- Server List -->
     <string name="server_name">Nom du Serveur</string>
-    <string name="server_address">Adresse (HTTP ou IP)</string>
+    <string name="server_address">Adresse (HTTPS ou IP)</string>
     <string name="server_port">Port (Optionnel)</string>
     <string name="request_type">Type de Requête</string>
     <string name="add_server">Ajouter un Serveur</string>
@@ -26,11 +26,17 @@
     
     <!-- Settings -->
     <string name="time_between_requests">Temps entre les requêtes (secondes)</string>
+    <string name="request_delay_ms">Délai entre requêtes (ms)</string>
+    <string name="random_min_delay_ms">Délai aléatoire min (ms)</string>
+    <string name="random_max_delay_ms">Délai aléatoire max (ms)</string>
     <string name="infinite_requests">Requêtes infinies</string>
     <string name="number_of_requests">Nombre de requêtes</string>
-    <string name="export_servers">Exporter les Serveurs</string>
-    <string name="import_servers">Importer les Serveurs</string>
-    <string name="share_servers">Partager les Serveurs</string>
+    <string name="export_servers">Exporter les données</string>
+    <string name="import_servers">Importer les données</string>
+    <string name="share_servers">Partager les données</string>
+    <string name="export_servers_description">Sauvegarder les horaires et fournitures</string>
+    <string name="import_servers_description">Restaurer depuis une sauvegarde</string>
+    <string name="share_servers_description">Partager les horaires et fournitures via d\'autres applications</string>
     
     <!-- Test -->
     <string name="number_of_servers">Nombre de serveurs : %d</string>
@@ -38,6 +44,14 @@
     <string name="stop_test">Arrêter le Test</string>
     <string name="test_running">Test en Cours</string>
     <string name="test_stopped">Test Arrêté</string>
+    <string name="next_cycle_in">Prochain cycle dans : %s secondes</string>
+    
+    <!-- Settings Groups -->
+    <string name="test_configuration">Configuration de Test</string>
+    <string name="data_management">Gestion des Données</string>
+    <string name="random_delay_group">Délai aléatoire (ms)</string>
+    <string name="min_delay">Min</string>
+    <string name="max_delay">Max</string>
     
     <!-- Status -->
     <string name="status_idle">Inactif</string>
@@ -55,4 +69,10 @@
     <string name="import_success">Serveurs importés avec succès</string>
     <string name="export_error">Erreur lors de l\'exportation des serveurs</string>
     <string name="import_error">Erreur lors de l\'importation des serveurs</string>
+    
+    <!-- Empty State -->
+    <string name="empty_server_list">Aucun serveur pour le moment</string>
+    <string name="empty_server_list_hint">Commencez par ajouter votre premier serveur avec le bouton + ci-dessous</string>
+    <string name="empty_test_list">Rien à tester</string>
+    <string name="empty_test_list_hint">Ajoutez d\'abord quelques serveurs, puis revenez ici pour commencer les tests</string>
 </resources>
