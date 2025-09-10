@@ -1,10 +1,14 @@
 package com.ltrudu.serverloadtest.fragment;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,9 +22,12 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.documentfile.provider.DocumentFile;
 import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -37,6 +44,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -68,16 +76,51 @@ public class SettingsFragment extends Fragment {
     private LinearLayout layoutShareData;
     
     private ActivityResultLauncher<String> importLauncher;
+    private ActivityResultLauncher<String> createDocumentLauncher;
+    private ActivityResultLauncher<String[]> openDocumentLauncher;
+    private ActivityResultLauncher<String> permissionLauncher;
+    
+    private static final int STORAGE_PERMISSION_REQUEST = 100;
     
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
+        // Legacy import launcher (for Android < 10)
         importLauncher = registerForActivityResult(
                 new ActivityResultContracts.GetContent(),
                 uri -> {
                     if (uri != null) {
                         importServersFromUri(uri);
+                    }
+                });
+        
+        // Scoped storage launchers (for Android >= 10)
+        createDocumentLauncher = registerForActivityResult(
+                new ActivityResultContracts.CreateDocument("application/json"),
+                uri -> {
+                    if (uri != null) {
+                        exportServersToUri(uri);
+                    }
+                });
+        
+        openDocumentLauncher = registerForActivityResult(
+                new ActivityResultContracts.OpenDocument(),
+                uri -> {
+                    if (uri != null) {
+                        importServersFromUri(uri);
+                    }
+                });
+        
+        // Permission launcher
+        permissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(),
+                isGranted -> {
+                    if (isGranted) {
+                        // Permission granted, proceed with export
+                        exportServersLegacy();
+                    } else {
+                        Toast.makeText(getContext(), "Storage permission denied", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
@@ -221,21 +264,60 @@ public class SettingsFragment extends Fragment {
     
     
     private void exportServers() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Android 10+ - Use scoped storage
+            exportServersScoped();
+        } else {
+            // Android 7-9 - Use legacy external storage with permission
+            if (hasStoragePermission()) {
+                exportServersLegacy();
+            } else {
+                requestStoragePermission();
+            }
+        }
+    }
+    
+    private void exportServersScoped() {
+        // Use SAF (Storage Access Framework) for Android 10+
+        createDocumentLauncher.launch("servers_export.json");
+    }
+    
+    private void exportServersLegacy() {
         executorService.execute(() -> {
             try {
                 List<Server> servers = serverViewModel.getAllServersSync();
                 Gson gson = new Gson();
                 String json = gson.toJson(servers);
                 
-                File exportDir = new File(requireContext().getExternalFilesDir(null), "exports");
-                if (!exportDir.exists()) {
-                    exportDir.mkdirs();
-                }
-                
-                File exportFile = new File(exportDir, "servers_export.json");
+                // Use public Downloads directory for Android 7-9
+                File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                File exportFile = new File(downloadsDir, "servers_export.json");
                 
                 try (FileWriter writer = new FileWriter(exportFile)) {
                     writer.write(json);
+                }
+                
+                requireActivity().runOnUiThread(() -> 
+                    Toast.makeText(getContext(), getString(R.string.export_success) + "\n" + exportFile.getAbsolutePath(), Toast.LENGTH_LONG).show());
+                
+            } catch (IOException e) {
+                requireActivity().runOnUiThread(() -> 
+                    Toast.makeText(getContext(), getString(R.string.export_error), Toast.LENGTH_SHORT).show());
+            }
+        });
+    }
+    
+    private void exportServersToUri(Uri uri) {
+        executorService.execute(() -> {
+            try {
+                List<Server> servers = serverViewModel.getAllServersSync();
+                Gson gson = new Gson();
+                String json = gson.toJson(servers);
+                
+                try (OutputStream outputStream = requireContext().getContentResolver().openOutputStream(uri)) {
+                    if (outputStream != null) {
+                        outputStream.write(json.getBytes());
+                    }
                 }
                 
                 requireActivity().runOnUiThread(() -> 
@@ -249,7 +331,28 @@ public class SettingsFragment extends Fragment {
     }
     
     private void importServers() {
-        importLauncher.launch("application/json");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Android 10+ - Use scoped storage
+            String[] mimeTypes = {"application/json", "text/json"};
+            openDocumentLauncher.launch(mimeTypes);
+        } else {
+            // Android 7-9 - Use legacy method
+            importLauncher.launch("application/json");
+        }
+    }
+    
+    private boolean hasStoragePermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            return true; // No permission needed for scoped storage
+        }
+        return ContextCompat.checkSelfPermission(requireContext(), 
+                Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+    }
+    
+    private void requestStoragePermission() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            permissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        }
     }
     
     private void importServersFromUri(Uri uri) {
