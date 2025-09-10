@@ -185,7 +185,7 @@ Currently supported languages:
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
+We welcome contributions!
 
 ### 🐛 **Bug Reports**
 - Use GitHub Issues with bug report template
@@ -208,7 +208,7 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) file for details.
 
 ---
 
@@ -223,7 +223,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- 📧 **Email**: support@serverresponsetest.com
+- 📧 **Email**: support@trudu.com
 - 🐛 **Bug Reports**: [GitHub Issues](https://github.com/your-repo/server-response-test/issues)
 - 📖 **Documentation**: [Wiki](https://github.com/your-repo/server-response-test/wiki)
 - 💬 **Discussions**: [GitHub Discussions](https://github.com/your-repo/server-response-test/discussions)
