@@ -79,13 +79,13 @@ Currently supported languages:
 ### Contributing
 - **[Contributing Guide](Contributing.md)** - Code contribution guidelines
 - **[Code of Conduct](Code-of-Conduct.md)** - Community standards
-- **[Development Discussions](https://github.com/ltrudu/ServerResponseTest/discussions)** - Technical discussions
+- **[Development Discussions](https://github.com/ltrudu/ServerResponseTest/issues)** - Technical discussions and questions
 
 ## 📞 Contact & Links
 
 - 📧 **Email**: support@trudu.com
 - 🐛 **Bug Reports**: [GitHub Issues](https://github.com/ltrudu/ServerResponseTest/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/ltrudu/ServerResponseTest/discussions)
+- 💬 **Questions**: [GitHub Issues](https://github.com/ltrudu/ServerResponseTest/issues)
 - 📖 **Source Code**: [GitHub Repository](https://github.com/ltrudu/ServerResponseTest)
 
 ---
