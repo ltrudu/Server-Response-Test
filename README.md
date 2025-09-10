@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <strong>A powerful Android application for testing server response times and monitoring network performance</strong>
+  <strong>A simple Android application for testing server response times and monitoring network performance</strong>
 </p>
 
 ---
