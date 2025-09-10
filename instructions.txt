@@ -1,0 +1,38 @@
+You are an expert in Android development, you write everything in java using view model architecture and design patterns.
+You are the best designer, and you create user friendly interfaces.
+When you create a function, you automatically document it in a file called documentation.md, also provide a translated version of the documentation in the file documentation_fr.md
+
+Update this project to create the following functionalities:
+- the application uses fragment and display everything with a list of tabs
+- the tabs should be named as "Test", "Server List", "Settings"
+
+Server list tab:
+- the server list tab displays a list of server
+- there is a + button to add a new server
+- when the user tap on + it opens a dialog where the user can enter a server namme, its address (http or IP),  an optional port, and a drop down list with requests options : Http, Ping.
+- when the user swipe left a row with a server, it open a confirmation dialog for deletion, if the user confirm, it deletes the entry
+- when the user tap on a row, it open an edit dialog where he can edit the server name, address, port
+- the server list and parameters must be stored in a local open source data base
+
+Settings tab:
+- the user can set a duration, which is called "Time between requests"
+- the user can define if the requests are infinite with a check box, if the checkbox is unchecked, he can define a number of requestst to execute. by default it is infinite.
+- there is a save button to save the settings to the shared preferences
+
+Test tab:
+- the test tab displays the number of servers defined in the servers list : "Number of servers" + the size of the list
+- there is a play/stop toggle button to start/stop process
+- it displays the list of servers with an icon explaining what the application is actually doing (more info later)
+
+Application workflow:
+The user goes to the server list, add new servers.
+Then he goes to the test tab.
+When he tap on play button, it start processing.
+The process should be done in a separate thread.
+The process consist in parsing the server lists.
+Then if the server is set to HTTP requests, the application will load the page indicated by the address using default https port if no port was defined, or using the defined port.
+If the server is set to Ping, the app should send a ping message to the address using standard port if nothing has been defined or the custom user port.
+The application will wait for "Time between request" setting value before doing another request on the defined server
+
+Make the application look and feel compatible with Material 3, make all strings in strings.xml in English, add a french translation.
+Add an export and import to json feature in the settings page, and a share to option (this will create a temporary json file and use it for sharing)

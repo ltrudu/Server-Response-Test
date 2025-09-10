@@ -1,0 +1,58 @@
+<resources>
+    <string name="app_name">Test de Charge Serveur</string>
+    
+    <!-- Tab names -->
+    <string name="tab_test">Test</string>
+    <string name="tab_server_list">Liste des Serveurs</string>
+    <string name="tab_settings">Paramètres</string>
+    
+    <!-- Server List -->
+    <string name="server_name">Nom du Serveur</string>
+    <string name="server_address">Adresse (HTTP ou IP)</string>
+    <string name="server_port">Port (Optionnel)</string>
+    <string name="request_type">Type de Requête</string>
+    <string name="add_server">Ajouter un Serveur</string>
+    <string name="edit_server">Modifier le Serveur</string>
+    <string name="delete_server">Supprimer le Serveur</string>
+    <string name="confirm_delete">Êtes-vous sûr de vouloir supprimer ce serveur ?</string>
+    <string name="cancel">Annuler</string>
+    <string name="save">Enregistrer</string>
+    <string name="delete">Supprimer</string>
+    <string name="ok">OK</string>
+    
+    <!-- Request Types -->
+    <string name="request_type_http">HTTP</string>
+    <string name="request_type_ping">Ping</string>
+    
+    <!-- Settings -->
+    <string name="time_between_requests">Temps entre les requêtes (secondes)</string>
+    <string name="infinite_requests">Requêtes infinies</string>
+    <string name="number_of_requests">Nombre de requêtes</string>
+    <string name="export_servers">Exporter les Serveurs</string>
+    <string name="import_servers">Importer les Serveurs</string>
+    <string name="share_servers">Partager les Serveurs</string>
+    
+    <!-- Test -->
+    <string name="number_of_servers">Nombre de serveurs : %d</string>
+    <string name="start_test">Démarrer le Test</string>
+    <string name="stop_test">Arrêter le Test</string>
+    <string name="test_running">Test en Cours</string>
+    <string name="test_stopped">Test Arrêté</string>
+    
+    <!-- Status -->
+    <string name="status_idle">Inactif</string>
+    <string name="status_running">En cours</string>
+    <string name="status_success">Succès</string>
+    <string name="status_error">Erreur</string>
+    
+    <!-- Validation -->
+    <string name="error_empty_name">Le nom du serveur ne peut pas être vide</string>
+    <string name="error_empty_address">L\'adresse du serveur ne peut pas être vide</string>
+    <string name="error_invalid_port">Numéro de port invalide</string>
+    
+    <!-- JSON Import/Export -->
+    <string name="export_success">Serveurs exportés avec succès</string>
+    <string name="import_success">Serveurs importés avec succès</string>
+    <string name="export_error">Erreur lors de l\'exportation des serveurs</string>
+    <string name="import_error">Erreur lors de l\'importation des serveurs</string>
+</resources>
