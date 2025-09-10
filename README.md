@@ -17,6 +17,22 @@
 
 Server Response Test is a comprehensive Android application designed for network administrators, developers, and IT professionals who need to monitor server performance and response times. The app provides real-time testing capabilities with detailed analytics and customizable test parameters.
 
+## 🆕 What's New
+
+### Version 1.1 - Latest Release
+🎉 **Major Update!** Background notifications, enhanced timing controls, and improved user experience.
+
+**Highlights:**
+- 📱 **Background Service Notifications** - Control tests from your notification bar
+- 🔔 **Smart Permission Management** - Seamless notification setup with French localization  
+- ⏱️ **Millisecond Precision Timing** - Fine-grained control over test intervals
+- 📊 **Request Progress Counter** - See remaining requests in finite mode
+- 🐛 **Import Bug Fixes** - Reliable data synchronization
+
+👉 **[View Full Changelog](ChangeLog.md)** for complete details
+
+---
+
 ## ✨ Key Features
 
 ### 🎯 **Multi-Protocol Testing**
@@ -218,6 +234,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) f
 - **Android Jetpack** for modern architecture components
 - **Room Database** for robust local storage
 - **Community Contributors** for feedback and improvements
+
+---
+
+## 📖 Documentation
+
+- 📋 **Technical Documentation**: [documentation.md](documentation.md) - Complete architecture and implementation details
+- 🇫🇷 **Documentation Française**: [documentation_fr.md](documentation_fr.md) - Documentation complète en français
+- 📝 **Changelog**: [ChangeLog.md](ChangeLog.md) - Version history and feature updates
 
 ---
 

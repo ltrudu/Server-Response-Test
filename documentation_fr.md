@@ -2,7 +2,7 @@
 
 ## Vue d'ensemble
 
-L'application Test de Charge Serveur est une application Android développée en Java utilisant l'architecture ViewModel et les design patterns. Elle fournit une solution complète pour tester la connectivité des serveurs via des requêtes HTTP ou des opérations Ping.
+L'application Test de Charge Serveur est une application Android développée en Java utilisant l'architecture ViewModel et les design patterns. Elle fournit une solution complète pour tester la connectivité des serveurs via des requêtes HTTP ou des opérations Ping. La version 1.1 introduit des fonctionnalités d'arrière-plan améliorées avec des notifications persistantes, une gestion avancée des autorisations, et des contrôles de temporisation précis.
 
 ## Architecture
 
@@ -42,11 +42,16 @@ L'application Test de Charge Serveur est une application Android développée en
 - Bouton Lecture/Arrêt pour contrôler l'exécution des tests
 - Affichage en temps réel des résultats des tests de serveur avec icônes de statut
 - Montre les temps de réponse et les états d'erreur
+- **NOUVEAU v1.1** : Compteur de requêtes restantes pour le mode test fini
+- **NOUVEAU v1.1** : Mises à jour de progression en temps réel pendant les tests
+- **NOUVEAU v1.1** : Vérification des autorisations de notification avant démarrage
 
 **Fonctions Clés :**
-- `startTest()` : Initie le test des serveurs avec le service en arrière-plan
+- `startTest()` : Initie le test des serveurs avec vérification des autorisations
 - `stopTest()` : Arrête les tests en cours
 - `handleTestResult()` : Traite les résultats diffusés depuis le service
+- `handleRequestProgress()` : **NOUVEAU** - Met à jour le compteur de requêtes en temps réel
+- `updateRemainingRequestsDisplay()` : **NOUVEAU** - Affiche la progression pour le mode fini
 - `updateUI()` : Met à jour les états du bouton lecture/arrêt
 
 #### 2. Onglet Liste des Serveurs (`ServerListFragment`)
@@ -68,32 +73,46 @@ L'application Test de Charge Serveur est une application Android développée en
 - Type de Requête (HTTP ou Ping)
 
 #### 3. Onglet Paramètres (`SettingsFragment`)
-- Configuration du temps entre les requêtes (secondes)
+- **MODIFIÉ v1.1** : Configuration du temps entre sessions (maintenant en millisecondes pour la précision)
 - Bascule pour requêtes infinies
 - Nombre de requêtes (quand pas infini)
 - Fonctionnalité d'Export/Import/Partage pour les configurations de serveur
+- **NOUVEAU v1.1** : Indicateur d'état des autorisations de notification avec correction en un clic
+- **NOUVEAU v1.1** : Affichage visuel de l'état (vert/orange) pour l'état des notifications
 
 **Fonctions Clés :**
-- `saveSettings()` : Persiste les paramètres dans SharedPreferences
-- `exportServers()` : Exporte la liste des serveurs vers un fichier JSON
-- `importServers()` : Importe les serveurs depuis un fichier JSON
+- `saveSettings()` : Persiste les paramètres dans la base de données avec sauvegarde automatique
+- `exportServers()` : Exporte la liste des serveurs et paramètres vers un fichier JSON
+- `importServersFromUri()` : **AMÉLIORÉ** - Import amélioré avec synchronisation appropriée
 - `shareServers()` : Crée un fichier JSON partageable
+- `updateNotificationStatus()` : **NOUVEAU** - Met à jour l'affichage des autorisations de notification
+- `handleNotificationStatusClick()` : **NOUVEAU** - Ouvre les paramètres d'autorisation si nécessaire
 
 ### Service en Arrière-plan
 
 #### ServerTestService
-Service de premier plan qui effectue des requêtes HTTP et des opérations ping en arrière-plan.
+**AMÉLIORÉ v1.1** : Service de premier plan avancé avec notifications riches et contrôles utilisateur.
 
 **Caractéristiques Clés :**
 - Test concurrent de plusieurs serveurs
-- Délais configurables entre les requêtes
+- **MODIFIÉ** : Délais configurables en millisecondes pour la précision temporelle
 - Support pour les cycles de requêtes infinis et limités
 - Diffusion des résultats en temps réel vers l'interface utilisateur
-- Implémentation appropriée du service de premier plan avec notifications
+- **NOUVEAU** : Notifications persistantes riches avec état actuel
+- **NOUVEAU** : Boutons d'action de notification (Pause/Reprendre/Arrêter)
+- **NOUVEAU** : Mises à jour de progression en temps réel dans la notification
+- **NOUVEAU** : Fonctionnalité pause/reprise sans arrêter les tests
+- **NOUVEAU** : Diffusion de progression des requêtes pour le mode fini
 
 **Méthodes de Test :**
 - `testHttpServer()` : Effectue des requêtes HTTP GET avec gestion des timeouts
 - `testPingServer()` : Utilise InetAddress.isReachable() pour les tests de ping
+
+**NOUVELLES Fonctionnalités de Notification :**
+- `updateNotification()` : Met à jour la notification avec l'état actuel des tests
+- `pauseTesting()` : Met en pause les tests sans arrêter le service
+- `resumeTesting()` : Reprend les tests mis en pause
+- `broadcastRequestProgress()` : Envoie les mises à jour de progression pour les requêtes restantes
 
 ### Schéma de Base de Données
 
