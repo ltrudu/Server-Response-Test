@@ -18,3 +18,4 @@ ServerLoadTest/release/
 .claude/settings.local.json
 logcat.txt
 PERFORMANCE_OPTIMIZATION.md
+ServerResponseTest/release/

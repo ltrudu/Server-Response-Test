@@ -20,5 +20,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "ServerLoadTest"
-include(":ServerLoadTest")
+include(":ServerResponseTest")
  
