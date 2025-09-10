@@ -258,8 +258,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) f
   <strong>Made with ❤️ for network monitoring professionals</strong>
 </p>
 
-<p align="center">
-  <img src="https://img.shields.io/github/stars/ltrudu/ServerResponseTest?style=social" alt="GitHub Stars">
-  <img src="https://img.shields.io/github/forks/ltrudu/ServerResponseTest?style=social" alt="GitHub Forks">
-  <img src="https://img.shields.io/github/watchers/ltrudu/ServerResponseTest?style=social" alt="GitHub Watchers">
-</p>
