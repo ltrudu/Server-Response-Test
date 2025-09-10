@@ -105,7 +105,7 @@ Server Response Test is a comprehensive Android application designed for network
 ### 🔧 **Installation**
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-repo/server-response-test.git
+   git clone https://github.com/ltrudu/ServerResponseTest.git
    ```
 
 2. **Open in Android Studio**
@@ -248,9 +248,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) f
 ## 📞 Support
 
 - 📧 **Email**: support@trudu.com
-- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/your-repo/server-response-test/issues)
-- 📖 **Documentation**: [Wiki](https://github.com/your-repo/server-response-test/wiki)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/your-repo/server-response-test/discussions)
+- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/ltrudu/ServerResponseTest/issues)
+- 📖 **Documentation**: [Wiki](wiki/Home.md)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/ltrudu/ServerResponseTest/discussions)
 
 ---
 
@@ -259,7 +259,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) f
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/github/stars/your-repo/server-response-test?style=social" alt="GitHub Stars">
-  <img src="https://img.shields.io/github/forks/your-repo/server-response-test?style=social" alt="GitHub Forks">
-  <img src="https://img.shields.io/github/watchers/your-repo/server-response-test?style=social" alt="GitHub Watchers">
+  <img src="https://img.shields.io/github/stars/ltrudu/ServerResponseTest?style=social" alt="GitHub Stars">
+  <img src="https://img.shields.io/github/forks/ltrudu/ServerResponseTest?style=social" alt="GitHub Forks">
+  <img src="https://img.shields.io/github/watchers/ltrudu/ServerResponseTest?style=social" alt="GitHub Watchers">
 </p>
