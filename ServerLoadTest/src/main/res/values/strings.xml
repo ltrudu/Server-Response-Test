@@ -45,6 +45,7 @@
     <string name="test_running">Test Running</string>
     <string name="test_stopped">Test Stopped</string>
     <string name="next_cycle_in">Next cycle in: %s seconds</string>
+    <string name="processing_servers">Processing servers</string>
     
     <!-- Settings Groups -->
     <string name="test_configuration">Test Configuration</string>

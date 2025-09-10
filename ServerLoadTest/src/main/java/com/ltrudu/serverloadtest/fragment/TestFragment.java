@@ -40,6 +40,9 @@ public class TestFragment extends Fragment {
     private LinearLayout emptyTestStateLayout;
     private LinearLayout testControlsLayout;
     private boolean isTestRunning = false;
+    private boolean areServersProcessing = false;
+    private int processedServerCount = 0;
+    private int totalServerCount = 0;
     
     private LocalBroadcastManager localBroadcastManager;
     private BroadcastReceiver testResultReceiver;
@@ -98,6 +101,7 @@ public class TestFragment extends Fragment {
         serverViewModel = new ViewModelProvider(this).get(ServerViewModel.class);
         serverViewModel.getAllServers().observe(getViewLifecycleOwner(), servers -> {
             if (servers != null) {
+                totalServerCount = servers.size();
                 serverCountText.setText(getString(R.string.number_of_servers, servers.size()));
                 testServerAdapter.submitList(servers);
                 
@@ -134,10 +138,13 @@ public class TestFragment extends Fragment {
                     statusText.setText(R.string.test_running);
                     // Set all servers to pending status when test starts
                     setAllServersPending();
+                    processedServerCount = 0;
+                    areServersProcessing = true;
                     updateUI();
-                    startCountdown();
+                    updateCountdownText();
                 } else if (ServerTestService.ACTION_TEST_STOPPED.equals(action)) {
                     isTestRunning = false;
+                    areServersProcessing = false;
                     statusText.setText(R.string.test_stopped);
                     stopCountdown();
                     updateUI();
@@ -176,6 +183,18 @@ public class TestFragment extends Fragment {
         
         // Update the adapter to show test results
         testServerAdapter.updateServerResult(serverId, success, responseTime, errorMessage);
+        
+        // Track processed servers
+        processedServerCount++;
+        
+        // Check if all servers are processed
+        if (processedServerCount >= totalServerCount) {
+            areServersProcessing = false;
+            if (isTestRunning) {
+                // All servers processed, start countdown for next cycle
+                startCountdown();
+            }
+        }
     }
     
     private void handleServerTesting(Intent intent) {
@@ -188,9 +207,29 @@ public class TestFragment extends Fragment {
     private void setAllServersPending() {
         // Use the adapter's method to set all servers to pending status
         testServerAdapter.setAllServersPending();
+        processedServerCount = 0;
+        areServersProcessing = true;
+    }
+    
+    private void updateCountdownText() {
+        if (areServersProcessing) {
+            countdownText.setText(R.string.processing_servers);
+            countdownText.setVisibility(View.VISIBLE);
+        } else if (isTestRunning) {
+            // Countdown will be handled by the timer
+            countdownText.setVisibility(View.VISIBLE);
+        } else {
+            countdownText.setVisibility(View.GONE);
+        }
     }
     
     private void startCountdown() {
+        // Don't start countdown if servers are still processing
+        if (areServersProcessing) {
+            updateCountdownText();
+            return;
+        }
+        
         if (countDownTimer != null) {
             countDownTimer.cancel();
         }
@@ -203,11 +242,15 @@ public class TestFragment extends Fragment {
         countDownTimer = new CountDownTimer(countdownTime, 100L) {
             @Override
             public void onTick(long millisUntilFinished) {
-                long seconds = millisUntilFinished / 1000;
-                long tenths = (millisUntilFinished % 1000) / 100;
-                String countdownFormat = getString(R.string.next_cycle_in, String.format("%d.%d", seconds, tenths));
-                countdownText.setText(countdownFormat);
-                countdownText.setVisibility(View.VISIBLE);
+                if (!areServersProcessing) {
+                    long seconds = millisUntilFinished / 1000;
+                    long tenths = (millisUntilFinished % 1000) / 100;
+                    String countdownFormat = getString(R.string.next_cycle_in, String.format("%d.%d", seconds, tenths));
+                    countdownText.setText(countdownFormat);
+                    countdownText.setVisibility(View.VISIBLE);
+                } else {
+                    updateCountdownText();
+                }
             }
             
             @Override
@@ -215,7 +258,7 @@ public class TestFragment extends Fragment {
                 // Reset countdown for next cycle
                 if (isTestRunning) {
                     setAllServersPending();
-                    startCountdown();
+                    updateCountdownText();
                 }
             }
         };
