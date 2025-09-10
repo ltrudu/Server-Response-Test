@@ -15,7 +15,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.button.MaterialButtonToggleGroup;
@@ -44,7 +43,6 @@ public class ServerListFragment extends Fragment {
         setupRecyclerView();
         setupViewModel();
         setupClickListeners();
-        setupSwipeToDelete();
         
         return view;
     }
@@ -83,25 +81,6 @@ public class ServerListFragment extends Fragment {
     
     private void setupClickListeners() {
         addServerFab.setOnClickListener(v -> showAddEditServerDialog(null));
-    }
-    
-    private void setupSwipeToDelete() {
-        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
-            @Override
-            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
-                return false;
-            }
-            
-            @Override
-            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-                int position = viewHolder.getAdapterPosition();
-                Server server = serverAdapter.getServerAt(position);
-                showDeleteConfirmationDialog(server);
-            }
-        };
-        
-        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleCallback);
-        itemTouchHelper.attachToRecyclerView(serverRecyclerView);
     }
     
     private void showAddEditServerDialog(Server existingServer) {
