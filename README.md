@@ -250,7 +250,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) f
 - 📧 **Email**: support@trudu.com
 - 🐛 **Bug Reports**: [GitHub Issues](https://github.com/ltrudu/ServerResponseTest/issues)
 - 📖 **Documentation**: [Wiki](wiki/Home.md)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/ltrudu/ServerResponseTest/discussions)
+- 💬 **Discussions**: [GitHub Issues](https://github.com/ltrudu/ServerResponseTest/issues)
 
 ---
 
