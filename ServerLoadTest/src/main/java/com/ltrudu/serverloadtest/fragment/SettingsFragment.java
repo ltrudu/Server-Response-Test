@@ -9,6 +9,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,6 +30,7 @@ import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.documentfile.provider.DocumentFile;
+import androidx.appcompat.app.AlertDialog;
 import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -35,7 +38,10 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import com.ltrudu.serverloadtest.R;
+import com.ltrudu.serverloadtest.data.ExportData;
 import com.ltrudu.serverloadtest.data.Server;
+import com.ltrudu.serverloadtest.data.Settings;
+import com.ltrudu.serverloadtest.repository.SettingsRepository;
 import com.ltrudu.serverloadtest.viewmodel.ServerViewModel;
 
 import java.io.BufferedReader;
@@ -52,17 +58,10 @@ import java.util.concurrent.Executors;
 
 public class SettingsFragment extends Fragment {
     
-    private static final String PREFS_NAME = "ServerLoadTestPrefs";
-    private static final String PREF_TIME_BETWEEN_REQUESTS = "time_between_requests";
-    private static final String PREF_REQUEST_DELAY_MS = "request_delay_ms";
-    private static final String PREF_RANDOM_MIN_DELAY_MS = "random_min_delay_ms";
-    private static final String PREF_RANDOM_MAX_DELAY_MS = "random_max_delay_ms";
-    private static final String PREF_INFINITE_REQUESTS = "infinite_requests";
-    private static final String PREF_NUMBER_OF_REQUESTS = "number_of_requests";
-    
     private ServerViewModel serverViewModel;
-    private SharedPreferences sharedPreferences;
+    private SettingsRepository settingsRepository;
     private ExecutorService executorService;
+    private Settings currentSettings;
     
     private TextInputEditText timeBetweenRequestsEditText;
     private TextInputEditText requestDelayEditText;
@@ -74,6 +73,7 @@ public class SettingsFragment extends Fragment {
     private LinearLayout layoutExportData;
     private LinearLayout layoutImportData;
     private LinearLayout layoutShareData;
+    private LinearLayout layoutResetDatabase;
     
     private ActivityResultLauncher<String> importLauncher;
     private ActivityResultLauncher<String> createDocumentLauncher;
@@ -81,6 +81,11 @@ public class SettingsFragment extends Fragment {
     private ActivityResultLauncher<String> permissionLauncher;
     
     private static final int STORAGE_PERMISSION_REQUEST = 100;
+    private static final int DEBOUNCE_DELAY_MS = 500; // 500ms delay for database saves
+    
+    private Handler debounceHandler = new Handler(Looper.getMainLooper());
+    private Runnable pendingSaveRunnable;
+    private boolean isUpdatingFromSettings = false;
     
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -134,7 +139,6 @@ public class SettingsFragment extends Fragment {
         setupViewModel();
         setupPreferences();
         setupClickListeners();
-        loadSettings();
         
         return view;
     }
@@ -150,82 +154,75 @@ public class SettingsFragment extends Fragment {
         layoutExportData = view.findViewById(R.id.layoutExportData);
         layoutImportData = view.findViewById(R.id.layoutImportData);
         layoutShareData = view.findViewById(R.id.layoutShareData);
+        layoutResetDatabase = view.findViewById(R.id.layoutResetDatabase);
     }
     
     private void setupViewModel() {
         serverViewModel = new ViewModelProvider(this).get(ServerViewModel.class);
+        settingsRepository = new SettingsRepository(requireActivity().getApplication());
+        executorService = Executors.newSingleThreadExecutor();
+        
+        // Observe settings changes
+        settingsRepository.getSettings().observe(getViewLifecycleOwner(), settings -> {
+            if (settings != null) {
+                currentSettings = settings;
+                updateUIFromSettings(settings);
+            }
+        });
     }
     
     private void setupPreferences() {
-        sharedPreferences = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        executorService = Executors.newSingleThreadExecutor();
+        // Method kept for compatibility but functionality moved to setupViewModel
+    }
+    
+    private void updateUIFromSettings(Settings settings) {
+        if (settings != null) {
+            // Prevent text watchers from firing during programmatic updates
+            isUpdatingFromSettings = true;
+            
+            timeBetweenRequestsEditText.setText(String.valueOf(settings.getTimeBetweenRequests()));
+            requestDelayEditText.setText(String.valueOf(settings.getRequestDelayMs()));
+            randomMinDelayEditText.setText(String.valueOf(settings.getRandomMinDelayMs()));
+            randomMaxDelayEditText.setText(String.valueOf(settings.getRandomMaxDelayMs()));
+            infiniteRequestsCheckBox.setChecked(settings.isInfiniteRequests());
+            numberOfRequestsEditText.setText(String.valueOf(settings.getNumberOfRequests()));
+            numberOfRequestsInputLayout.setEnabled(!settings.isInfiniteRequests());
+            
+            isUpdatingFromSettings = false;
+        }
     }
     
     private void setupClickListeners() {
         infiniteRequestsCheckBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
             numberOfRequestsInputLayout.setEnabled(!isChecked);
-            saveSettingToPrefs(PREF_INFINITE_REQUESTS, isChecked);
+            settingsRepository.updateInfiniteRequests(isChecked);
         });
         
         layoutExportData.setOnClickListener(v -> exportServers());
         layoutImportData.setOnClickListener(v -> importServers());
         layoutShareData.setOnClickListener(v -> shareServers());
+        layoutResetDatabase.setOnClickListener(v -> showResetDatabaseDialog());
         
         setupAutoSave();
     }
     
-    private void loadSettings() {
-        int timeBetweenRequests = sharedPreferences.getInt(PREF_TIME_BETWEEN_REQUESTS, 5);
-        int requestDelayMs = sharedPreferences.getInt(PREF_REQUEST_DELAY_MS, 100);
-        int randomMinDelayMs = sharedPreferences.getInt(PREF_RANDOM_MIN_DELAY_MS, 50);
-        int randomMaxDelayMs = sharedPreferences.getInt(PREF_RANDOM_MAX_DELAY_MS, 100);
-        boolean infiniteRequests = sharedPreferences.getBoolean(PREF_INFINITE_REQUESTS, true);
-        int numberOfRequests = sharedPreferences.getInt(PREF_NUMBER_OF_REQUESTS, 10);
-        
-        timeBetweenRequestsEditText.setText(String.valueOf(timeBetweenRequests));
-        requestDelayEditText.setText(String.valueOf(requestDelayMs));
-        randomMinDelayEditText.setText(String.valueOf(randomMinDelayMs));
-        randomMaxDelayEditText.setText(String.valueOf(randomMaxDelayMs));
-        infiniteRequestsCheckBox.setChecked(infiniteRequests);
-        numberOfRequestsEditText.setText(String.valueOf(numberOfRequests));
-        numberOfRequestsInputLayout.setEnabled(!infiniteRequests);
-    }
     
     private void setupAutoSave() {
-        timeBetweenRequestsEditText.addTextChangedListener(new SimpleTextWatcher() {
-            @Override
-            public void afterTextChanged(Editable s) {
-                saveIntSetting(s.toString().trim(), PREF_TIME_BETWEEN_REQUESTS, 5);
-            }
-        });
+        // Use debounced text watchers to reduce database calls and InputMethodManager spam
+        timeBetweenRequestsEditText.addTextChangedListener(
+                new DebouncedTextWatcher("time_between_requests", 5));
         
-        requestDelayEditText.addTextChangedListener(new SimpleTextWatcher() {
-            @Override
-            public void afterTextChanged(Editable s) {
-                saveIntSetting(s.toString().trim(), PREF_REQUEST_DELAY_MS, 100);
-            }
-        });
+        requestDelayEditText.addTextChangedListener(
+                new DebouncedTextWatcher("request_delay_ms", 100));
         
-        randomMinDelayEditText.addTextChangedListener(new SimpleTextWatcher() {
-            @Override
-            public void afterTextChanged(Editable s) {
-                saveIntSetting(s.toString().trim(), PREF_RANDOM_MIN_DELAY_MS, 50);
-            }
-        });
+        randomMinDelayEditText.addTextChangedListener(
+                new DebouncedTextWatcher("random_min_delay_ms", 50));
         
-        randomMaxDelayEditText.addTextChangedListener(new SimpleTextWatcher() {
-            @Override
-            public void afterTextChanged(Editable s) {
-                saveIntSetting(s.toString().trim(), PREF_RANDOM_MAX_DELAY_MS, 100);
-            }
-        });
+        randomMaxDelayEditText.addTextChangedListener(
+                new DebouncedTextWatcher("random_max_delay_ms", 100));
         
-        numberOfRequestsEditText.addTextChangedListener(new SimpleTextWatcher() {
-            @Override
-            public void afterTextChanged(Editable s) {
-                saveIntSetting(s.toString().trim(), PREF_NUMBER_OF_REQUESTS, 10);
-            }
-        });
+        numberOfRequestsEditText.addTextChangedListener(
+                new DebouncedTextWatcher("number_of_requests", 10));
     }
     
     private void saveIntSetting(String value, String key, int defaultValue) {
@@ -233,22 +230,28 @@ public class SettingsFragment extends Fragment {
             try {
                 int intValue = Integer.parseInt(value);
                 if (intValue >= 0) {
-                    saveSettingToPrefs(key, intValue);
+                    switch (key) {
+                        case "time_between_requests":
+                            settingsRepository.updateTimeBetweenRequests(intValue);
+                            break;
+                        case "request_delay_ms":
+                            settingsRepository.updateRequestDelayMs(intValue);
+                            break;
+                        case "random_min_delay_ms":
+                            settingsRepository.updateRandomMinDelayMs(intValue);
+                            break;
+                        case "random_max_delay_ms":
+                            settingsRepository.updateRandomMaxDelayMs(intValue);
+                            break;
+                        case "number_of_requests":
+                            settingsRepository.updateNumberOfRequests(intValue);
+                            break;
+                    }
                 }
             } catch (NumberFormatException e) {
                 // Ignore invalid numbers
             }
         }
-    }
-    
-    private void saveSettingToPrefs(String key, Object value) {
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        if (value instanceof Integer) {
-            editor.putInt(key, (Integer) value);
-        } else if (value instanceof Boolean) {
-            editor.putBoolean(key, (Boolean) value);
-        }
-        editor.apply();
     }
     
     private static class SimpleTextWatcher implements TextWatcher {
@@ -260,6 +263,43 @@ public class SettingsFragment extends Fragment {
         
         @Override
         public void afterTextChanged(Editable s) {}
+    }
+    
+    private class DebouncedTextWatcher implements TextWatcher {
+        private final String settingKey;
+        private final int defaultValue;
+        
+        public DebouncedTextWatcher(String settingKey, int defaultValue) {
+            this.settingKey = settingKey;
+            this.defaultValue = defaultValue;
+        }
+        
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+        
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {}
+        
+        @Override
+        public void afterTextChanged(Editable s) {
+            // Skip processing during programmatic updates to prevent unnecessary database calls
+            if (isUpdatingFromSettings) {
+                return;
+            }
+            
+            // Cancel any pending save operation
+            if (pendingSaveRunnable != null) {
+                debounceHandler.removeCallbacks(pendingSaveRunnable);
+            }
+            
+            // Schedule a new save operation with debounce
+            pendingSaveRunnable = () -> {
+                saveIntSetting(s.toString().trim(), settingKey, defaultValue);
+                pendingSaveRunnable = null;
+            };
+            
+            debounceHandler.postDelayed(pendingSaveRunnable, DEBOUNCE_DELAY_MS);
+        }
     }
     
     
@@ -286,8 +326,11 @@ public class SettingsFragment extends Fragment {
         executorService.execute(() -> {
             try {
                 List<Server> servers = serverViewModel.getAllServersSync();
+                Settings settings = settingsRepository.getSettingsSync();
+                
+                ExportData exportData = new ExportData(servers, settings);
                 Gson gson = new Gson();
-                String json = gson.toJson(servers);
+                String json = gson.toJson(exportData);
                 
                 // Use public Downloads directory for Android 7-9
                 File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
@@ -311,8 +354,11 @@ public class SettingsFragment extends Fragment {
         executorService.execute(() -> {
             try {
                 List<Server> servers = serverViewModel.getAllServersSync();
+                Settings settings = settingsRepository.getSettingsSync();
+                
+                ExportData exportData = new ExportData(servers, settings);
                 Gson gson = new Gson();
-                String json = gson.toJson(servers);
+                String json = gson.toJson(exportData);
                 
                 try (OutputStream outputStream = requireContext().getContentResolver().openOutputStream(uri)) {
                     if (outputStream != null) {
@@ -366,20 +412,63 @@ public class SettingsFragment extends Fragment {
                     jsonBuilder.append(line);
                 }
                 
+                String jsonString = jsonBuilder.toString();
                 Gson gson = new Gson();
-                Type listType = new TypeToken<List<Server>>(){}.getType();
-                List<Server> servers = gson.fromJson(jsonBuilder.toString(), listType);
                 
-                serverViewModel.deleteAllServers();
-                
-                for (Server server : servers) {
-                    serverViewModel.insertServer(server, null);
+                try {
+                    // Try to parse as new format (ExportData)
+                    ExportData exportData = gson.fromJson(jsonString, ExportData.class);
+                    
+                    if (exportData != null && exportData.getServers() != null) {
+                        // Clear existing data
+                        serverViewModel.deleteAllServers();
+                        
+                        // Import servers
+                        for (Server server : exportData.getServers()) {
+                            serverViewModel.insertServer(server, null);
+                        }
+                        
+                        // Replace settings (this will automatically trigger UI update)
+                        Settings settingsToImport;
+                        if (exportData.getSettings() != null) {
+                            settingsToImport = exportData.getSettings();
+                        } else {
+                            settingsToImport = Settings.getDefault();
+                        }
+                        settingsToImport.setId(1); // Ensure it replaces the existing row
+                        settingsRepository.insertSettings(settingsToImport);
+                        
+                        requireActivity().runOnUiThread(() -> 
+                            Toast.makeText(getContext(), getString(R.string.import_success), Toast.LENGTH_SHORT).show());
+                    } else {
+                        throw new JsonSyntaxException("Invalid export data format");
+                    }
+                } catch (JsonSyntaxException e) {
+                    try {
+                        // Fallback: try to parse as old format (List<Server>)
+                        Type listType = new TypeToken<List<Server>>(){}.getType();
+                        List<Server> servers = gson.fromJson(jsonString, listType);
+                        
+                        if (servers != null) {
+                            serverViewModel.deleteAllServers();
+                            
+                            for (Server server : servers) {
+                                serverViewModel.insertServer(server, null);
+                            }
+                            
+                            // Keep existing settings when importing old format
+                            requireActivity().runOnUiThread(() -> 
+                                Toast.makeText(getContext(), getString(R.string.import_success), Toast.LENGTH_SHORT).show());
+                        } else {
+                            throw new JsonSyntaxException("Invalid server list format");
+                        }
+                    } catch (JsonSyntaxException e2) {
+                        requireActivity().runOnUiThread(() -> 
+                            Toast.makeText(getContext(), getString(R.string.import_error), Toast.LENGTH_SHORT).show());
+                    }
                 }
                 
-                requireActivity().runOnUiThread(() -> 
-                    Toast.makeText(getContext(), getString(R.string.import_success), Toast.LENGTH_SHORT).show());
-                
-            } catch (IOException | JsonSyntaxException e) {
+            } catch (IOException e) {
                 requireActivity().runOnUiThread(() -> 
                     Toast.makeText(getContext(), getString(R.string.import_error), Toast.LENGTH_SHORT).show());
             }
@@ -390,8 +479,11 @@ public class SettingsFragment extends Fragment {
         executorService.execute(() -> {
             try {
                 List<Server> servers = serverViewModel.getAllServersSync();
+                Settings settings = settingsRepository.getSettingsSync();
+                
+                ExportData exportData = new ExportData(servers, settings);
                 Gson gson = new Gson();
-                String json = gson.toJson(servers);
+                String json = gson.toJson(exportData);
                 
                 File tempDir = new File(requireContext().getCacheDir(), "temp");
                 if (!tempDir.exists()) {
@@ -426,32 +518,73 @@ public class SettingsFragment extends Fragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        
+        // Clean up debounce handler to prevent memory leaks
+        if (debounceHandler != null && pendingSaveRunnable != null) {
+            debounceHandler.removeCallbacks(pendingSaveRunnable);
+            pendingSaveRunnable = null;
+        }
+        
         if (executorService != null) {
             executorService.shutdown();
         }
+        if (settingsRepository != null) {
+            settingsRepository.shutdown();
+        }
+    }
+    
+    private void showResetDatabaseDialog() {
+        new AlertDialog.Builder(requireContext())
+                .setTitle(R.string.reset_database_title)
+                .setMessage(R.string.reset_database_message)
+                .setIcon(R.drawable.ic_warning_24)
+                .setPositiveButton(R.string.reset, (dialog, which) -> resetDatabase())
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+    }
+    
+    private void resetDatabase() {
+        executorService.execute(() -> {
+            try {
+                // Clear all servers
+                serverViewModel.deleteAllServers();
+                
+                // Replace settings with defaults (this will automatically trigger UI update)
+                Settings defaultSettings = Settings.getDefault();
+                defaultSettings.setId(1); // Ensure it replaces the existing row
+                settingsRepository.insertSettings(defaultSettings);
+                
+                requireActivity().runOnUiThread(() -> 
+                    Toast.makeText(getContext(), "Database reset successfully", Toast.LENGTH_SHORT).show());
+                
+            } catch (Exception e) {
+                requireActivity().runOnUiThread(() -> 
+                    Toast.makeText(getContext(), "Error resetting database", Toast.LENGTH_SHORT).show());
+            }
+        });
     }
     
     public int getTimeBetweenRequests() {
-        return sharedPreferences.getInt(PREF_TIME_BETWEEN_REQUESTS, 5);
+        return currentSettings != null ? currentSettings.getTimeBetweenRequests() : 5;
     }
     
     public int getRequestDelayMs() {
-        return sharedPreferences.getInt(PREF_REQUEST_DELAY_MS, 100);
+        return currentSettings != null ? currentSettings.getRequestDelayMs() : 100;
     }
     
     public int getRandomMinDelayMs() {
-        return sharedPreferences.getInt(PREF_RANDOM_MIN_DELAY_MS, 50);
+        return currentSettings != null ? currentSettings.getRandomMinDelayMs() : 50;
     }
     
     public int getRandomMaxDelayMs() {
-        return sharedPreferences.getInt(PREF_RANDOM_MAX_DELAY_MS, 100);
+        return currentSettings != null ? currentSettings.getRandomMaxDelayMs() : 100;
     }
     
     public boolean isInfiniteRequests() {
-        return sharedPreferences.getBoolean(PREF_INFINITE_REQUESTS, true);
+        return currentSettings != null ? currentSettings.isInfiniteRequests() : true;
     }
     
     public int getNumberOfRequests() {
-        return sharedPreferences.getInt(PREF_NUMBER_OF_REQUESTS, 10);
+        return currentSettings != null ? currentSettings.getNumberOfRequests() : 10;
     }
 }

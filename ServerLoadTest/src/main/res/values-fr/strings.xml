@@ -25,7 +25,7 @@
     <string name="request_type_ping">Ping</string>
     
     <!-- Settings -->
-    <string name="time_between_requests">Temps entre les requêtes (secondes)</string>
+    <string name="time_between_sessions">Temps entre les sessions (secondes)</string>
     <string name="request_delay_ms">Délai entre requêtes (ms)</string>
     <string name="random_min_delay_ms">Délai aléatoire min (ms)</string>
     <string name="random_max_delay_ms">Délai aléatoire max (ms)</string>
@@ -50,9 +50,19 @@
     <!-- Settings Groups -->
     <string name="test_configuration">Configuration de Test</string>
     <string name="data_management">Gestion des Données</string>
+    <string name="danger_zone">Zone de Danger</string>
     <string name="random_delay_group">Délai aléatoire (ms)</string>
     <string name="min_delay">Min</string>
     <string name="max_delay">Max</string>
+    
+    <!-- Danger Zone -->
+    <string name="reset_database">Réinitialiser la Base</string>
+    <string name="reset_database_description">Supprimer toutes les données et restaurer les paramètres par défaut</string>
+    <string name="reset_database_title">Réinitialiser la Base de Données</string>
+    <string name="reset_database_message">Cette action supprimera définitivement tous les serveurs et paramètres. Cette action ne peut pas être annulée.
+
+Êtes-vous sûr de vouloir continuer ?</string>
+    <string name="reset">Réinitialiser</string>
     
     <!-- Status -->
     <string name="status_idle">Inactif</string>

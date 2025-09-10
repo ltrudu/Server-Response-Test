@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.view.LayoutInflater;
@@ -23,14 +22,15 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.ltrudu.serverloadtest.R;
 import com.ltrudu.serverloadtest.adapter.TestServerAdapter;
 import com.ltrudu.serverloadtest.data.Server;
+import com.ltrudu.serverloadtest.repository.SettingsRepository;
 import com.ltrudu.serverloadtest.service.ServerTestService;
 import com.ltrudu.serverloadtest.viewmodel.ServerViewModel;
 
 public class TestFragment extends Fragment {
     
-    private static final String PREFS_NAME = "ServerLoadTestPrefs";
-    
     private ServerViewModel serverViewModel;
+    private SettingsRepository settingsRepository;
+    private com.ltrudu.serverloadtest.data.Settings currentSettings;
     private TextView serverCountText;
     private TextView statusText;
     private TextView countdownText;
@@ -79,6 +79,10 @@ public class TestFragment extends Fragment {
     public void onDestroy() {
         super.onDestroy();
         stopCountdown();
+        
+        if (settingsRepository != null) {
+            settingsRepository.shutdown();
+        }
     }
     
     private void initializeViews(View view) {
@@ -99,6 +103,7 @@ public class TestFragment extends Fragment {
     
     private void setupViewModel() {
         serverViewModel = new ViewModelProvider(this).get(ServerViewModel.class);
+        settingsRepository = new SettingsRepository(requireActivity().getApplication());
         serverViewModel.getAllServers().observe(getViewLifecycleOwner(), servers -> {
             if (servers != null) {
                 totalServerCount = servers.size();
@@ -119,6 +124,11 @@ public class TestFragment extends Fragment {
                     playStopButton.setEnabled(true);
                 }
             }
+        });
+        
+        // Observe settings changes
+        settingsRepository.getSettings().observe(getViewLifecycleOwner(), settings -> {
+            currentSettings = settings;
         });
     }
     
@@ -234,8 +244,11 @@ public class TestFragment extends Fragment {
             countDownTimer.cancel();
         }
         
-        SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        int timeBetweenRequests = prefs.getInt("time_between_requests", 5);
+        // Get current settings from cache
+        int timeBetweenRequests = 5; // Default value
+        if (currentSettings != null) {
+            timeBetweenRequests = currentSettings.getTimeBetweenRequests();
+        }
         
         long countdownTime = timeBetweenRequests * 1000L; // Convert to milliseconds
         
@@ -283,13 +296,22 @@ public class TestFragment extends Fragment {
     }
     
     private void startTest() {
-        SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        int timeBetweenRequests = prefs.getInt("time_between_requests", 5);
-        int requestDelayMs = prefs.getInt("request_delay_ms", 100);
-        int randomMinDelayMs = prefs.getInt("random_min_delay_ms", 50);
-        int randomMaxDelayMs = prefs.getInt("random_max_delay_ms", 100);
-        boolean infiniteRequests = prefs.getBoolean("infinite_requests", true);
-        int numberOfRequests = prefs.getInt("number_of_requests", 10);
+        // Get current settings from cache
+        int timeBetweenRequests = 5; // Default values
+        int requestDelayMs = 100;
+        int randomMinDelayMs = 50;
+        int randomMaxDelayMs = 100;
+        boolean infiniteRequests = true;
+        int numberOfRequests = 10;
+        
+        if (currentSettings != null) {
+            timeBetweenRequests = currentSettings.getTimeBetweenRequests();
+            requestDelayMs = currentSettings.getRequestDelayMs();
+            randomMinDelayMs = currentSettings.getRandomMinDelayMs();
+            randomMaxDelayMs = currentSettings.getRandomMaxDelayMs();
+            infiniteRequests = currentSettings.isInfiniteRequests();
+            numberOfRequests = currentSettings.getNumberOfRequests();
+        }
         
         Intent serviceIntent = new Intent(requireContext(), ServerTestService.class);
         serviceIntent.putExtra(ServerTestService.EXTRA_TIME_BETWEEN_REQUESTS, timeBetweenRequests);

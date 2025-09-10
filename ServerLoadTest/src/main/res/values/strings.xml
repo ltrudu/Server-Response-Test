@@ -25,7 +25,7 @@
     <string name="request_type_ping">Ping</string>
     
     <!-- Settings -->
-    <string name="time_between_requests">Time between requests (seconds)</string>
+    <string name="time_between_sessions">Time between sessions (seconds)</string>
     <string name="request_delay_ms">Request delay (ms)</string>
     <string name="random_min_delay_ms">Min random delay (ms)</string>
     <string name="random_max_delay_ms">Max random delay (ms)</string>
@@ -50,9 +50,19 @@
     <!-- Settings Groups -->
     <string name="test_configuration">Test Configuration</string>
     <string name="data_management">Data Management</string>
+    <string name="danger_zone">Danger Zone</string>
     <string name="random_delay_group">Random delay (ms)</string>
     <string name="min_delay">Min</string>
     <string name="max_delay">Max</string>
+    
+    <!-- Danger Zone -->
+    <string name="reset_database">Reset Database</string>
+    <string name="reset_database_description">Delete all data and restore defaults</string>
+    <string name="reset_database_title">Reset Database</string>
+    <string name="reset_database_message">This action will delete all servers and settings permanently. This action cannot be undone.
+
+Are you sure you want to continue?</string>
+    <string name="reset">Reset</string>
     
     <!-- Status -->
     <string name="status_idle">Idle</string>
