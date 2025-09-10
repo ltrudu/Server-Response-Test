@@ -64,7 +64,7 @@
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- Custom Random Delay Group -->
-                <serverresponsetest.ui.OutlinedGroupView
+                <com.ltrudu.serverresponsetest.ui.OutlinedGroupView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
@@ -118,7 +118,7 @@
 
                     </LinearLayout>
 
-                </serverresponsetest.ui.OutlinedGroupView>
+                </com.ltrudu.serverresponsetest.ui.OutlinedGroupView>
 
                 <com.google.android.material.checkbox.MaterialCheckBox
                     android:id="@+id/infiniteRequestsCheckBox"
