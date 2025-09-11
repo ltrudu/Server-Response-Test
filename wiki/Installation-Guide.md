@@ -6,7 +6,7 @@ This guide provides step-by-step instructions for installing and setting up the 
 
 ### Option 1: Pre-built APK (Recommended)
 1. **Download the APK**
-   - Navigate to the [Releases](https://github.com/ltrudu/ServerResponseTest/releases) page
+   - Navigate to the [Releases](https://github.com/ltrudu/Server-Response-Test/releases) page
    - Download the latest `ServerResponseTest-vX.X.apk` file
 
 2. **Enable Unknown Sources**
@@ -77,8 +77,8 @@ Before setting up the development environment, ensure you have:
 
 1. **Clone the Repository**
    ```bash
-   git clone https://github.com/ltrudu/ServerResponseTest.git
-   cd ServerResponseTest
+   git clone https://github.com/ltrudu/Server-Response-Test.git
+   cd Server-Response-Test
    ```
 
 2. **Open in Android Studio**
@@ -279,7 +279,7 @@ export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 ## 🔄 Updates and Maintenance
 
 ### Updating the App (End Users)
-1. Check [Releases](https://github.com/ltrudu/ServerResponseTest/releases) page periodically
+1. Check [Releases](https://github.com/ltrudu/Server-Response-Test/releases) page periodically
 2. Download newer APK when available
 3. Install over existing version (settings preserved)
 4. Review changelog for new features
@@ -299,7 +299,7 @@ If you encounter issues during installation:
 
 1. **Check the [FAQ](FAQ.md)** for common questions
 2. **Review [Troubleshooting Guide](Troubleshooting.md)** for detailed solutions
-3. **Search [GitHub Issues](https://github.com/ltrudu/ServerResponseTest/issues)** for similar problems
+3. **Search [GitHub Issues](https://github.com/ltrudu/Server-Response-Test/issues)** for similar problems
 4. **Create a new issue** with:
    - Device information (model, Android version)
    - Installation method used

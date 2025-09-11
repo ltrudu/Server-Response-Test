@@ -228,7 +228,7 @@ The app supports both domain names (`https://example.com`) and IP addresses (`19
 
 ### Q: Is the source code available?
 **A:** Yes, fully open source:
-- **GitHub**: https://github.com/ltrudu/ServerResponseTest
+- **GitHub**: https://github.com/ltrudu/Server-Response-Test
 - **License**: MIT License (free to use and modify)
 - **Contributions**: Welcome via pull requests
 - **Issues**: Report bugs and request features on GitHub
@@ -245,7 +245,7 @@ The app supports both domain names (`https://example.com`) and IP addresses (`19
 
 ### Q: How do I update to the latest version?
 **A:** Manual update process:
-1. Visit [GitHub Releases](https://github.com/ltrudu/ServerResponseTest/releases)
+1. Visit [GitHub Releases](https://github.com/ltrudu/Server-Response-Test/releases)
 2. Download latest APK file
 3. Install over existing version (settings preserved)
 4. Review [ChangeLog.md](../ChangeLog.md) for new features
@@ -271,8 +271,8 @@ The app supports both domain names (`https://example.com`) and IP addresses (`19
    - [Configuration Examples](Configuration-Examples.md) - Setup scenarios
 
 2. **Search existing issues:**
-   - [GitHub Issues](https://github.com/ltrudu/ServerResponseTest/issues)
-   - [GitHub Discussions](https://github.com/ltrudu/ServerResponseTest/discussions)
+   - [GitHub Issues](https://github.com/ltrudu/Server-Response-Test/issues)
+   - [GitHub Discussions](https://github.com/ltrudu/Server-Response-Test/discussions)
 
 3. **Contact support:**
    - **Email**: support@trudu.com

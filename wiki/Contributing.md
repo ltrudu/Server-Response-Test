@@ -44,13 +44,13 @@ Before contributing, ensure you have:
 1. **Fork the Repository**
    ```bash
    # Fork on GitHub, then clone your fork
-   git clone https://github.com/YOUR_USERNAME/ServerResponseTest.git
-   cd ServerResponseTest
+   git clone https://github.com/YOUR_USERNAME/Server-Response-Test.git
+   cd Server-Response-Test
    ```
 
 2. **Add Upstream Remote**
    ```bash
-   git remote add upstream https://github.com/ltrudu/ServerResponseTest.git
+   git remote add upstream https://github.com/ltrudu/Server-Response-Test.git
    ```
 
 3. **Set Up Development Environment**
@@ -439,4 +439,4 @@ Thank you for contributing to Server Response Test! Your efforts help make this 
 
 ---
 
-**Questions?** Don't hesitate to ask in [GitHub Discussions](https://github.com/ltrudu/ServerResponseTest/discussions) or create an issue for clarification.
+**Questions?** Don't hesitate to ask in [GitHub Issues](https://github.com/ltrudu/Server-Response-Test/issues) or create an issue for clarification.

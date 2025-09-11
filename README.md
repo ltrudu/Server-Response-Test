@@ -105,7 +105,7 @@ Server Response Test is a comprehensive Android application designed for network
 ### 🔧 **Installation**
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/ltrudu/ServerResponseTest.git
+   git clone https://github.com/ltrudu/Server-Response-Test.git
    ```
 
 2. **Open in Android Studio**
@@ -248,9 +248,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) f
 ## 📞 Support
 
 - 📧 **Email**: support@trudu.com
-- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/ltrudu/ServerResponseTest/issues)
+- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/ltrudu/Server-Response-Test/issues)
 - 📖 **Documentation**: [Wiki](wiki/Home.md)
-- 💬 **Discussions**: [GitHub Issues](https://github.com/ltrudu/ServerResponseTest/issues)
+- 💬 **Discussions**: [GitHub Issues](https://github.com/ltrudu/Server-Response-Test/issues)
 
 ---
 

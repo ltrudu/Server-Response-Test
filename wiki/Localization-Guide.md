@@ -36,8 +36,8 @@ This comprehensive guide covers all aspects of internationalization and localiza
 ```bash
 # Fork the repository
 # Clone your fork
-git clone https://github.com/YOUR_USERNAME/ServerResponseTest.git
-cd ServerResponseTest
+git clone https://github.com/YOUR_USERNAME/Server-Response-Test.git
+cd Server-Response-Test
 
 # Create feature branch
 git checkout -b feature/localization-spanish

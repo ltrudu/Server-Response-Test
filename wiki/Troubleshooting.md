@@ -623,12 +623,12 @@ If all else fails, perform complete reset:
 
 #### GitHub Issues
 - **Best for**: Bug reports, feature requests
-- **URL**: https://github.com/ltrudu/ServerResponseTest/issues
+- **URL**: https://github.com/ltrudu/Server-Response-Test/issues
 - **Include**: Diagnostic information, steps to reproduce
 
 #### GitHub Discussions
 - **Best for**: General questions, usage help
-- **URL**: https://github.com/ltrudu/ServerResponseTest/discussions
+- **URL**: https://github.com/ltrudu/Server-Response-Test/discussions
 - **Include**: Configuration details, what you're trying to achieve
 
 #### Email Support

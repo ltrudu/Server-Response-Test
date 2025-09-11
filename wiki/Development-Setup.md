@@ -109,11 +109,11 @@ Optional Components:
 #### Clone Repository
 ```bash
 # Fork the repository on GitHub first
-git clone https://github.com/YOUR_USERNAME/ServerResponseTest.git
-cd ServerResponseTest
+git clone https://github.com/YOUR_USERNAME/Server-Response-Test.git
+cd Server-Response-Test
 
 # Add upstream remote
-git remote add upstream https://github.com/ltrudu/ServerResponseTest.git
+git remote add upstream https://github.com/ltrudu/Server-Response-Test.git
 
 # Verify remotes
 git remote -v
@@ -576,4 +576,4 @@ adb devices
 
 ---
 
-This development setup guide provides everything needed to start contributing to Server Response Test. For specific development questions, refer to the [Contributing Guide](Contributing.md) or reach out via [GitHub Discussions](https://github.com/ltrudu/ServerResponseTest/discussions).
+This development setup guide provides everything needed to start contributing to Server Response Test. For specific development questions, refer to the [Contributing Guide](Contributing.md) or reach out via [GitHub Discussions](https://github.com/ltrudu/Server-Response-Test/discussions).
